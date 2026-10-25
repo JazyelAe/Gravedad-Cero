@@ -23,7 +23,7 @@ namespace GravedadCero.Cameras
         [SerializeField] float minPitch = -35f;
         [SerializeField] float maxPitch = 70f;
         [Tooltip("Grados por segundo al reorientarse hacia una nueva gravedad.")]
-        [SerializeField] float upAlignSpeed = 180f;
+        [SerializeField] float upAlignSpeed = 240f;
 
         [Header("Colisión")]
         [SerializeField] LayerMask obstacleLayers = ~0;
@@ -64,11 +64,14 @@ namespace GravedadCero.Cameras
             float deltaTime = Time.deltaTime;
 
             // 1) Inclinar el marco hacia el "arriba" de la gravedad sin perder la dirección horizontal.
-            Quaternion aligned = Quaternion.FromToRotation(orbitFrame * Vector3.up, CurrentTargetUp()) * orbitFrame;
-            orbitFrame = Quaternion.RotateTowards(orbitFrame, aligned, upAlignSpeed * deltaTime);
+            //    En un giro de 180° rueda alrededor de su "adelante", igual que Kai.
+            orbitFrame = GravityController.RotateUpTowards(orbitFrame, CurrentTargetUp(), upAlignSpeed * deltaTime);
 
             // 2) Mouse: giro horizontal alrededor del "arriba" de la cámara e inclinación vertical limitada.
             orbitFrame *= Quaternion.AngleAxis(pendingLook.x * sensitivity, Vector3.up);
+            // Multiplicar cuaterniones frame tras frame acumula error de redondeo; si no se
+            // normaliza, las direcciones dejan de medir 1 y Physics.SphereCast lo rechaza.
+            orbitFrame = Quaternion.Normalize(orbitFrame);
             pitch = Mathf.Clamp(pitch - pendingLook.y * sensitivity, minPitch, maxPitch);
             pendingLook = Vector2.zero;
 

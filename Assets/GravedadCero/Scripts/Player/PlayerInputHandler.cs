@@ -1,4 +1,5 @@
 using GravedadCero.Cameras;
+using GravedadCero.Gravity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,20 +7,24 @@ namespace GravedadCero.Player
 {
     /// <summary>
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
-    /// GravityCamera. Es el único script del jugador que conoce el Input System.
-    /// Las acciones de gravedad, interacción, anclaje y pausa ya existen en el mapa,
-    /// pero todavía no se usan.
+    /// GravityCamera, y Q/R/F para GravityController. Es el único script del jugador que
+    /// conoce el Input System. Las acciones de interacción, anclaje y pausa ya existen en
+    /// el mapa, pero todavía no se usan.
     /// </summary>
     public class PlayerInputHandler : MonoBehaviour
     {
         [SerializeField] InputActionAsset actions;
         [SerializeField] PlayerMotor motor;
         [SerializeField] GravityCamera gravityCamera;
+        [SerializeField] GravityController gravityController;
 
         InputActionMap playerMap;
         InputAction moveAction;
         InputAction lookAction;
         InputAction jumpAction;
+        InputAction gravityLeftAction;
+        InputAction gravityRightAction;
+        InputAction gravityFlipAction;
 
         void Awake()
         {
@@ -27,6 +32,9 @@ namespace GravedadCero.Player
             moveAction = playerMap.FindAction("Move", throwIfNotFound: true);
             lookAction = playerMap.FindAction("Look", throwIfNotFound: true);
             jumpAction = playerMap.FindAction("Jump", throwIfNotFound: true);
+            gravityLeftAction = playerMap.FindAction("GravityLeft", throwIfNotFound: true);
+            gravityRightAction = playerMap.FindAction("GravityRight", throwIfNotFound: true);
+            gravityFlipAction = playerMap.FindAction("GravityFlip", throwIfNotFound: true);
         }
 
         void OnEnable()
@@ -57,6 +65,11 @@ namespace GravedadCero.Player
             motor.SetMoveInput(forward * input.y + right * input.x);
 
             if (jumpAction.WasPressedThisFrame()) motor.RequestJump();
+
+            // Q/R giran la gravedad hacia la izquierda/derecha de Kai (no de la cámara).
+            if (gravityLeftAction.WasPressedThisFrame()) gravityController.RotateLeft(motor.transform);
+            if (gravityRightAction.WasPressedThisFrame()) gravityController.RotateRight(motor.transform);
+            if (gravityFlipAction.WasPressedThisFrame()) gravityController.Flip();
         }
     }
 }

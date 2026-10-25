@@ -44,8 +44,10 @@ namespace GravedadCero.Player
         CapsuleCollider capsule;
         GravityBody gravityBody;
         readonly RaycastHit[] groundHits = new RaycastHit[8];
+        readonly Collider[] overlaps = new Collider[8];
 
         Vector3 moveInput;
+        Vector3 lastUp;
         float lastGroundedTime = float.NegativeInfinity;
         float lastJumpRequestTime = float.NegativeInfinity;
         float lastJumpTime = float.NegativeInfinity;
@@ -76,6 +78,7 @@ namespace GravedadCero.Player
             };
 
             GroundNormal = Up;
+            lastUp = Up;
         }
 
         /// <summary>Dirección deseada en el mundo, con magnitud entre 0 y 1.</summary>
@@ -92,10 +95,25 @@ namespace GravedadCero.Player
         void FixedUpdate()
         {
             Vector3 up = Up;
+            if (Vector3.Dot(up, lastUp) < 0.999f) OnGravityChanged(lastUp);
+            lastUp = up;
+
             UpdateGrounded(up);
             TryJump(up);
             Move();
             Rotate(up);
+        }
+
+        void OnGravityChanged(Vector3 previousUp)
+        {
+            // Se cancela la velocidad "vertical" del sistema anterior (por ejemplo, la subida
+            // de un salto) para que Kai empiece a caer limpiamente hacia la nueva superficie.
+            Vector3 velocity = body.linearVelocity;
+            body.linearVelocity = velocity - previousUp * Vector3.Dot(velocity, previousUp);
+
+            // El suelo anterior ya no cuenta: no se puede saltar desde él ni con coyote time.
+            lastGroundedTime = float.NegativeInfinity;
+            lastJumpRequestTime = float.NegativeInfinity;
         }
 
         void UpdateGrounded(Vector3 up)
@@ -176,11 +194,11 @@ namespace GravedadCero.Player
 
         void Rotate(Vector3 up)
         {
-            Quaternion rotation = body.rotation;
+            Quaternion current = body.rotation;
 
             // 1) Alinear el "arriba" del cuerpo con el opuesto a la gravedad.
-            Quaternion aligned = Quaternion.FromToRotation(rotation * Vector3.up, up) * rotation;
-            rotation = Quaternion.RotateTowards(rotation, aligned, alignSpeed * Time.fixedDeltaTime);
+            Quaternion rotation = GravityController.RotateUpTowards(current, up, alignSpeed * Time.fixedDeltaTime);
+            bool tilting = Quaternion.Angle(current, rotation) > 0.01f;
 
             // 2) Girar alrededor de ese "arriba" hacia la dirección de movimiento.
             Vector3 currentUp = rotation * Vector3.up;
@@ -191,7 +209,45 @@ namespace GravedadCero.Player
                 rotation = Quaternion.RotateTowards(rotation, target, turnSpeed * Time.fixedDeltaTime);
             }
 
-            body.MoveRotation(rotation);
+            if (!tilting)
+            {
+                body.MoveRotation(rotation);
+                return;
+            }
+
+            // Durante un cambio de gravedad se gira alrededor del centro de la cápsula y no de
+            // los pies: así el cuerpo no barre medio metro hacia una pared cercana.
+            Vector3 worldCenter = body.position + current * capsule.center;
+            Vector3 position = worldCenter - rotation * capsule.center;
+            position += ComputeDepenetration(position, rotation);
+            body.position = position;
+            body.rotation = rotation;
+        }
+
+        /// <summary>
+        /// Si con la pose indicada la cápsula quedaría dentro de algún collider, devuelve el
+        /// desplazamiento mínimo para sacarla. Evita que la física la expulse de golpe.
+        /// </summary>
+        Vector3 ComputeDepenetration(Vector3 position, Quaternion rotation)
+        {
+            Vector3 center = position + rotation * capsule.center;
+            Vector3 axis = rotation * Vector3.up * Mathf.Max(capsule.height * 0.5f - capsule.radius, 0f);
+            int count = Physics.OverlapCapsuleNonAlloc(center + axis, center - axis, capsule.radius, overlaps,
+                groundLayers, QueryTriggerInteraction.Ignore);
+
+            Vector3 push = Vector3.zero;
+            for (int i = 0; i < count; i++)
+            {
+                Collider other = overlaps[i];
+                if (other == capsule) continue;
+                if (Physics.ComputePenetration(capsule, position + push, rotation,
+                        other, other.transform.position, other.transform.rotation,
+                        out Vector3 direction, out float distance))
+                {
+                    push += direction * distance;
+                }
+            }
+            return push;
         }
     }
 }
