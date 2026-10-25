@@ -1,5 +1,6 @@
 using GravedadCero.Cameras;
 using GravedadCero.Gravity;
+using GravedadCero.Interaction;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,9 +8,9 @@ namespace GravedadCero.Player
 {
     /// <summary>
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
-    /// GravityCamera, y Q/R/F para GravityController. Es el único script del jugador que
-    /// conoce el Input System. Las acciones de interacción, anclaje y pausa ya existen en
-    /// el mapa, pero todavía no se usan.
+    /// GravityCamera, Q/R/F para GravityController y E para PlayerInteractor. Es el único
+    /// script del jugador que conoce el Input System. Las acciones de anclaje y pausa ya
+    /// existen en el mapa, pero todavía no se usan.
     /// </summary>
     public class PlayerInputHandler : MonoBehaviour
     {
@@ -17,6 +18,7 @@ namespace GravedadCero.Player
         [SerializeField] PlayerMotor motor;
         [SerializeField] GravityCamera gravityCamera;
         [SerializeField] GravityController gravityController;
+        [SerializeField] PlayerInteractor interactor;
 
         InputActionMap playerMap;
         InputAction moveAction;
@@ -25,6 +27,7 @@ namespace GravedadCero.Player
         InputAction gravityLeftAction;
         InputAction gravityRightAction;
         InputAction gravityFlipAction;
+        InputAction interactAction;
 
         void Awake()
         {
@@ -35,6 +38,7 @@ namespace GravedadCero.Player
             gravityLeftAction = playerMap.FindAction("GravityLeft", throwIfNotFound: true);
             gravityRightAction = playerMap.FindAction("GravityRight", throwIfNotFound: true);
             gravityFlipAction = playerMap.FindAction("GravityFlip", throwIfNotFound: true);
+            interactAction = playerMap.FindAction("Interact", throwIfNotFound: true);
         }
 
         void OnEnable()
@@ -70,6 +74,8 @@ namespace GravedadCero.Player
             if (gravityLeftAction.WasPressedThisFrame()) gravityController.RotateLeft(motor.transform);
             if (gravityRightAction.WasPressedThisFrame()) gravityController.RotateRight(motor.transform);
             if (gravityFlipAction.WasPressedThisFrame()) gravityController.Flip();
+
+            if (interactAction.WasPressedThisFrame()) interactor.TryInteract();
         }
     }
 }
