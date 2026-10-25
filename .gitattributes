@@ -23,6 +23,9 @@
 *.inputactions   text eol=lf
 *.meta           text eol=lf
 
+# Unity siempre guarda los datos de iluminación generados en binario, aunque sean .asset.
+LightingData.asset binary
+
 # Binarios (sin LFS por ahora; se reevaluará si crecen los assets)
 *.png   binary
 *.jpg   binary
