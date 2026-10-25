@@ -2,10 +2,7 @@
 
 Aventura 3D de puzzles y plataformas en tercera persona, ambientada en la estación orbital Helios-7. El jugador controla a Kai, un ingeniero de mantenimiento que usa un Módulo Gravitacional para caminar por paredes y techos, resolver puzzles y escapar de ORION, la IA de la estación.
 
-Proyecto escolar de la asignatura Creación de Videojuegos, en la Universidad Tecnológica de Puebla, carrera de Ingeniería en Desarrollo y Gestión de Software.
 
-- Alumno: Jahir Jaziel Serrano Arana, grupo 10-D
-- Profesor: José Francisco Espinosa Garita
 
 ## Requisitos
 
