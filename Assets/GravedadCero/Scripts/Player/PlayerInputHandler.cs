@@ -1,6 +1,7 @@
 using GravedadCero.Cameras;
 using GravedadCero.Gravity;
 using GravedadCero.Interaction;
+using GravedadCero.Level;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,9 +9,10 @@ namespace GravedadCero.Player
 {
     /// <summary>
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
-    /// GravityCamera, Q/R/F para GravityController y E para PlayerInteractor. Es el único
-    /// script del jugador que conoce el Input System. Las acciones de anclaje y pausa ya
-    /// existen en el mapa, pero todavía no se usan.
+    /// GravityCamera, Q/R/F para GravityController, E para PlayerInteractor, clic izquierdo
+    /// para GravitationalTool y Retroceso para reiniciar el nivel. Es el único script del
+    /// jugador que conoce el Input System. La acción de pausa existe en el mapa pero todavía
+    /// no se usa. Las referencias de herramienta y nivel son opcionales (Test_Gravity no las usa).
     /// </summary>
     public class PlayerInputHandler : MonoBehaviour
     {
@@ -19,6 +21,8 @@ namespace GravedadCero.Player
         [SerializeField] GravityCamera gravityCamera;
         [SerializeField] GravityController gravityController;
         [SerializeField] PlayerInteractor interactor;
+        [SerializeField] GravitationalTool gravitationalTool;
+        [SerializeField] LevelManager levelManager;
 
         InputActionMap playerMap;
         InputAction moveAction;
@@ -28,6 +32,8 @@ namespace GravedadCero.Player
         InputAction gravityRightAction;
         InputAction gravityFlipAction;
         InputAction interactAction;
+        InputAction anchorAction;
+        InputAction restartAction;
 
         void Awake()
         {
@@ -39,6 +45,8 @@ namespace GravedadCero.Player
             gravityRightAction = playerMap.FindAction("GravityRight", throwIfNotFound: true);
             gravityFlipAction = playerMap.FindAction("GravityFlip", throwIfNotFound: true);
             interactAction = playerMap.FindAction("Interact", throwIfNotFound: true);
+            anchorAction = playerMap.FindAction("Anchor", throwIfNotFound: true);
+            restartAction = playerMap.FindAction("Restart", throwIfNotFound: true);
         }
 
         void OnEnable()
@@ -57,7 +65,20 @@ namespace GravedadCero.Player
 
         void Update()
         {
+            if (levelManager != null && restartAction.WasPressedThisFrame())
+            {
+                levelManager.Restart();
+                return;
+            }
+
             gravityCamera.AddLookInput(lookAction.ReadValue<Vector2>());
+
+            // Con el nivel completado solo se permite mirar y reiniciar.
+            if (levelManager != null && levelManager.IsCompleted)
+            {
+                motor.SetMoveInput(Vector3.zero);
+                return;
+            }
 
             // W/S y A/D se interpretan respecto a hacia dónde mira la cámara, aplanado
             // sobre el plano perpendicular a la gravedad de Kai.
@@ -75,7 +96,8 @@ namespace GravedadCero.Player
             if (gravityRightAction.WasPressedThisFrame()) gravityController.RotateRight(motor.transform);
             if (gravityFlipAction.WasPressedThisFrame()) gravityController.Flip();
 
-            if (interactAction.WasPressedThisFrame()) interactor.TryInteract();
+            if (interactor != null && interactAction.WasPressedThisFrame()) interactor.TryInteract();
+            if (gravitationalTool != null && anchorAction.WasPressedThisFrame()) gravitationalTool.ToggleAnchor();
         }
     }
 }
