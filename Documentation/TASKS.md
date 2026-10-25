@@ -16,11 +16,21 @@ Estados:
 | V.1 | Paleta de materiales, iluminación y posprocesado | `faaa41a` | Sí | No aplica | Sí: revisión visual |
 | V.2 | Importación del Kenney Space Station Kit (CC0) y `Showcase_Kenney` | `7c57ed6` | Sí | No aplica | Sí: revisión visual |
 | 3.2 | Caja de carga (`CargoBox`), anclaje con clic (`GravitationalTool`, `AnchorableBody`) | `4115bc7` | Sí | Sí: Play Mode, ver abajo | Sí (25-10-2026) |
-| N1 | Nivel 1 `Level_01_DockingBay`: placa de presión, salida, `LevelManager`, HUD, reinicio | `feat: add playable Level 1 docking bay` | Sí | Sí: Play Mode, ver abajo | Sí (25-10-2026) |
+| N1 | Nivel 1 `Level_01_DockingBay`: placa de presión, salida, `LevelManager`, HUD, reinicio | `7e147cd` | Sí | Sí: Play Mode, ver abajo | Sí (25-10-2026) |
+| V.3 | Personaje animado de Kai: Kenney Animated Characters, skin propia, `PlayerAnimator`, `Kai.controller` | `feat: add animated Kai character` | Sí | Sí: Play Mode con capturas, ver abajo | **Pendiente** |
 
 ## Última prueba automática en Play Mode (25-10-2026)
 
-`Level_01_DockingBay`: **23 de 23 comprobaciones superadas.**
+`Level_01_DockingBay`, después de la Tarea V.3: **28 de 28 comprobaciones superadas.** Son las 23 del nivel más 5 del personaje:
+- Kai tiene un Animator humanoide con su controlador.
+- La cápsula visible ya no existe.
+- En reposo, el Animator recibe velocidad 0 y estado "en el suelo".
+- Al caer, pasa al estado de salto.
+- Corriendo, recibe la velocidad completa (6 m/s).
+
+Se ejecutó con gráficos y se generaron capturas de Kai en reposo, corriendo y sobre la pared.
+
+Detalle de las 23 comprobaciones del nivel:
 
 - Referencias de escena completas. La caja descansa sobre la plataforma. La placa y la compuerta empiezan inactivas.
 - R gira la gravedad a +X. La caja suelta cae sobre la placa de la pared este, la placa se activa y la compuerta se abre. Kai cae y se alinea con la pared.
@@ -30,7 +40,7 @@ Estados:
 - Al soltar la caja, esta cae al suelo, la placa se libera y la compuerta se cierra.
 - Consola sin errores ni advertencias durante toda la prueba.
 
-`Test_Gravity` (regresión): **5 de 5.** Kai en el suelo, la puerta presente, F lleva a Kai al techo y lo alinea, y la consola queda limpia.
+`Test_Gravity` (regresión, después de V.3): **5 de 5.** Kai tiene el modelo animado, está en el suelo, F lo lleva al techo y lo alinea, y la consola queda limpia.
 
 **Qué no cubren estas pruebas:**
 - El teclado y el mouse reales: la prueba da las órdenes por código.
