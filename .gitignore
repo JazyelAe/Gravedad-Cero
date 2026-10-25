@@ -1,0 +1,53 @@
+# --- Unity: carpetas generadas (se reconstruyen al abrir el proyecto) ---
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Paquetes de assets exportados
+*.unitypackage
+
+# Archivos de crash y depuración
+crashlytics-build.properties
+sysinfo.txt
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Assets temporales de Asset Store y plugins de terceros
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/Plugins/Editor/JetBrains*
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# --- IDE: soluciones y proyectos generados por Unity ---
+.vs/
+.vscode/
+.idea/
+.gradle/
+ExportedObj/
+.consulo/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+Desktop.ini

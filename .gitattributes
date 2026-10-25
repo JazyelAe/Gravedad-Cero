@@ -1,0 +1,43 @@
+# Normaliza finales de línea en archivos de texto
+* text=auto
+
+# Código y documentación
+*.cs        text diff=csharp
+*.shader    text
+*.hlsl      text
+*.uss       text
+*.uxml      text
+*.json      text
+*.md        text
+
+# Archivos YAML de Unity. "unityyamlmerge" es un driver opcional (UnityYAMLMerge,
+# incluido con el editor) que se activa en .git/config; si no está configurado,
+# Git usa su fusión de texto normal. linguist-generated los oculta en los diffs de GitHub.
+*.unity          text merge=unityyamlmerge eol=lf linguist-generated
+*.prefab         text merge=unityyamlmerge eol=lf linguist-generated
+*.asset          text merge=unityyamlmerge eol=lf linguist-generated
+*.mat            text merge=unityyamlmerge eol=lf linguist-generated
+*.anim           text merge=unityyamlmerge eol=lf linguist-generated
+*.controller     text merge=unityyamlmerge eol=lf linguist-generated
+*.physicMaterial text merge=unityyamlmerge eol=lf linguist-generated
+*.inputactions   text eol=lf
+*.meta           text eol=lf
+
+# Binarios (sin LFS por ahora; se reevaluará si crecen los assets)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.tga   binary
+*.psd   binary
+*.exr   binary
+*.hdr   binary
+*.fbx   binary
+*.obj   binary
+*.glb   binary
+*.blend binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.ttf   binary
+*.otf   binary
+*.dll   binary
