@@ -26,4 +26,4 @@ Fase 0, preparación del repositorio. El proyecto todavía no tiene mecánicas j
 
 ## Licencias y créditos
 
-Todavía no hay assets de terceros. Cuando se incorporen, se registrarán en `Documentation/ASSET_CREDITS.md`.
+Los assets de terceros y sus licencias se registran en [`Documentation/ASSET_CREDITS.md`](Documentation/ASSET_CREDITS.md). Por ahora el proyecto incluye el Space Station Kit de Kenney (CC0).
