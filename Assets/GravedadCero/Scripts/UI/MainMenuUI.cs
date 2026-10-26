@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using GravedadCero.Player;
 using GravedadCero.Save;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -27,12 +26,8 @@ namespace GravedadCero.UI
         [Tooltip("Modelo de Kai de la vista previa.")]
         [SerializeField] KaiSkinApplier preview;
 
-        static readonly Color Cyan = new Color(0.45f, 0.9f, 1f);
-        static readonly Color PanelColor = new Color(0.04f, 0.07f, 0.11f, 0.82f);
-        static readonly Color ButtonColor = new Color(0.12f, 0.17f, 0.24f, 0.95f);
-        static readonly Color ButtonHighlight = new Color(0.10f, 0.55f, 0.70f, 1f);
+        static readonly Color Cyan = UIFactory.Cyan;
 
-        Font font;
         Transform root;
         readonly Dictionary<string, GameObject> panels = new Dictionary<string, GameObject>();
         Text skinLabel;
@@ -41,7 +36,6 @@ namespace GravedadCero.UI
 
         void Awake()
         {
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             BuildCanvas();
             BuildMainPanel();
             BuildSectionsPanel();
@@ -98,14 +92,7 @@ namespace GravedadCero.UI
 
         void BuildCanvas()
         {
-            var canvasGo = new GameObject("Menu Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasGo.transform.SetParent(transform, false);
-            canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasGo.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
-            root = canvasGo.transform;
+            root = UIFactory.Canvas(transform, "Menu Canvas");
 
             Label(root, "Title", "GRAVEDAD CERO", 96, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(120, -110), new Vector2(1200, 120), Color.white, FontStyle.Bold);
             Label(root, "Subtitle", "Estación orbital Helios-7", 30, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(126, -225), new Vector2(1200, 50), Cyan);
@@ -160,81 +147,17 @@ namespace GravedadCero.UI
             skinLabel.text = $"{preview.Catalog.Get(preview.CurrentIndex).displayName}  ({preview.CurrentIndex + 1}/{preview.Catalog.Count})";
         }
 
-        GameObject Panel(string name)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            go.transform.SetParent(root, false);
-            var rect = (RectTransform)go.transform;
-            // Anclado arriba a la izquierda, bajo el título; la altura se ajusta a los botones.
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
-            rect.anchoredPosition = new Vector2(120, -300);
-            rect.sizeDelta = new Vector2(600, 0);
-            go.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            go.GetComponent<Image>().color = PanelColor;
-            var layout = go.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(40, 40, 40, 40);
-            layout.spacing = 18;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandHeight = false;
-            return go;
-        }
+        // Atajos a UIFactory con la posición de los paneles del menú principal.
+        GameObject Panel(string name) => UIFactory.Panel(root, name, new Vector2(0, 1), new Vector2(120, -300), 600);
 
-        Button AddButton(Transform parent, string text, Action onClick)
-        {
-            var go = new GameObject(text, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            ((RectTransform)go.transform).sizeDelta = new Vector2(520, 74);
-            go.GetComponent<Image>().color = Color.white;
-            var button = go.GetComponent<Button>();
-            var colors = button.colors;
-            colors.normalColor = ButtonColor;
-            colors.highlightedColor = ButtonHighlight;
-            colors.selectedColor = ButtonHighlight;
-            colors.pressedColor = Cyan;
-            colors.disabledColor = new Color(0.1f, 0.12f, 0.15f, 0.6f);
-            button.colors = colors;
-            button.onClick.AddListener(() => onClick());
-            var label = Label(go.transform, "Label", text, 30, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(500, 74), Color.white, FontStyle.Normal);
-            label.raycastTarget = false;
-            return button;
-        }
+        static Button AddButton(Transform parent, string text, Action onClick) => UIFactory.Button(parent, text, onClick);
 
-        Text Label(Transform parent, string name, string text, int size, TextAnchor anchor, Vector2 pivotAnchor,
-            Vector2 position, Vector2 boxSize, Color color, FontStyle style = FontStyle.Normal)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-            go.transform.SetParent(parent, false);
-            var rect = (RectTransform)go.transform;
-            rect.anchorMin = rect.anchorMax = rect.pivot = pivotAnchor;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = boxSize;
-            var label = go.GetComponent<Text>();
-            label.font = font;
-            label.fontSize = size;
-            label.fontStyle = style;
-            label.alignment = anchor;
-            label.color = color;
-            label.text = text;
-            return label;
-        }
+        static Text Label(Transform parent, string name, string text, int size, TextAnchor anchor, Vector2 pivotAnchor,
+            Vector2 position, Vector2 boxSize, Color color, FontStyle style = FontStyle.Normal) =>
+            UIFactory.Label(parent, name, text, size, anchor, pivotAnchor, position, boxSize, color, style);
 
-        static void Clear(Transform panel)
-        {
-            for (int i = panel.childCount - 1; i >= 0; i--) Destroy(panel.GetChild(i).gameObject);
-            panel.DetachChildren();
-        }
+        static void Clear(Transform panel) => UIFactory.Clear(panel);
 
-        static void SelectFirstButton(GameObject panel)
-        {
-            if (EventSystem.current == null) return;
-            foreach (var button in panel.GetComponentsInChildren<Button>())
-            {
-                if (!button.interactable) continue;
-                EventSystem.current.SetSelectedGameObject(button.gameObject);
-                return;
-            }
-        }
+        static void SelectFirstButton(GameObject panel) => UIFactory.SelectFirst(panel);
     }
 }
