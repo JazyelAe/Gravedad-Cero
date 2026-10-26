@@ -41,9 +41,13 @@ El progreso y la skin se guardan solos. Las soluciones están en [`Documentation
 | F | Invertir la gravedad 180° |
 | Clic izquierdo | Anclar o soltar la caja que está bajo la mira, a 8 m como máximo |
 | E | Usar interruptores |
-| Retroceso (Backspace) | Reiniciar la sección |
+| Retroceso (Backspace) | Reiniciar la sección al instante, sin confirmación |
 | Enter | Tras completar una sección, pasar a la siguiente |
-| Esc | Volver al menú principal |
+| Esc | Abrir o cerrar la pausa. En la pantalla de victoria, volver al menú principal |
+
+**Menú de pausa:** Reanudar, Controles (lista completa y pista de la sección), Configuración (sensibilidad del mouse e invertir el eje Y, que se guardan automáticamente), Reiniciar sección y Volver al menú. Las dos últimas piden confirmación; al volver al menú se conservan las secciones completadas.
+
+Al empezar cada sección aparece una tarjeta con el nombre, el objetivo, la pista y los controles esenciales. Se desvanece cuando Kai empieza a moverse o a los 8 segundos.
 
 ## Escenas
 

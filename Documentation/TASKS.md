@@ -23,7 +23,42 @@ Estados:
 | S.1 | Cinco skins para Kai (`SkinCatalog`, `KaiSkinApplier`) elegibles desde el menú | `283d40b` | Sí | Sí: cubierta por la prueba del menú | **Pendiente** |
 | N1.2 | Secciones 1-2 (pozo, `HazardZone`, interruptor en el techo) y 1-3 (dos placas, `ActivationGate`) | `d0fe3b2` | Sí | Sí: 16 + 18 comprobaciones en Play Mode | **Pendiente** |
 | T.1 | Ejecutor permanente de pruebas de regresión (`Tests/Editor/RegressionRunner.cs`, solo editor) | `207987f` | Sí | Sí: 66/66 (25-10-2026) | No aplica |
-| B.2 | Build Beta de Windows: menú y 3 secciones; `SampleScene` y `Test_Gravity` fuera del build; `companyName` = JazyelAe | `chore: exclude test scenes from build and set company name` | Sí | Prueba de humo del .exe y del ZIP descomprimido | **Pendiente** |
+| B.2 | Build Beta de Windows: menú y 3 secciones; `SampleScene` y `Test_Gravity` fuera del build; `companyName` = JazyelAe | `7f9fa47` | Sí | Prueba de humo del .exe y del ZIP descomprimido | **Pendiente** |
+| P2.1 | Menú de pausa (`PauseController`, `PauseMenuUI`): Reanudar, Controles, Configuración, Reiniciar y Volver al menú con confirmación | `9fe0baf`, `43929cf` | Sí | Sí: 26 comprobaciones en Play Mode, ver abajo | **Pendiente** |
+| P2.2 | Configuración de cámara (`GameSettings`): sensibilidad del mouse e invertir Y, guardadas en PlayerPrefs | `9fe0baf` | Sí | Sí: incluida en la prueba de pausa | **Pendiente** |
+| P2.3 | HUD: tarjeta de introducción que se desvanece, objetivo compacto, controles movidos a la pausa | `70d27f2` | Sí | Sí: 5 comprobaciones (aparición, ocultar al moverse, ocultar a los 8 s) | **Pendiente** |
+
+## Regresión con la Prioridad 2 (25-10-2026)
+
+**95 de 95 comprobaciones superadas en dos ejecuciones seguidas**, con la consola sin errores ni advertencias.
+
+| Bloque | Comprobaciones |
+|---|---|
+| Menú | 9 |
+| Sección 1-1 | 21 (incluye que en la victoria no se abre la pausa) |
+| Sección 1-2 | 14 |
+| Sección 1-3 | 17 |
+| Pausa | 26 |
+| HUD | 2 |
+| Test_Gravity | 5 |
+| Consola | 1 |
+
+Las pruebas de pausa pulsan **Esc, R, W y Retroceso en un teclado virtual del Input System**, así que pasan por el `PlayerInputHandler` real. No es un teclado físico. Comprueban que:
+- la pausa congela la caída de Kai (desplazamiento 0.0000 m) y al reanudar sigue cayendo;
+- R no cambia la gravedad en pausa;
+- Esc dos veces seguidas no duplica la pausa, y Esc dentro de un submenú vuelve al panel principal;
+- Reiniciar y Volver al menú piden confirmación, Esc cancela esa confirmación y, al confirmar, `timeScale` vuelve a 1 y se conserva el progreso;
+- Retroceso reinicia sin confirmar;
+- la sensibilidad se aplica al instante (10 px × 0.3 = 3°), invertir Y cambia el sentido, el valor se limita a un máximo seguro y todo persiste tras reiniciar;
+- la tarjeta de introducción se oculta al moverse y a los 8 s.
+
+**Corrección encontrada por las pruebas:** `LevelManager.Restart()` recargaba la escena por su índice de Build Settings y, si no lo encontraba, cargaba el índice 0, que es el menú. Ahora recarga por la ruta de la escena.
+
+**Pendiente de prueba manual:**
+- el clic real en los botones de pausa, el deslizador y la casilla;
+- la navegación con flechas en la pausa;
+- el bloqueo real del cursor al reanudar (en modo batch no hay ventana para bloquearlo);
+- el aspecto del fundido de la introducción.
 
 ## Regresión completa (25-10-2026, `RegressionRunner`)
 
