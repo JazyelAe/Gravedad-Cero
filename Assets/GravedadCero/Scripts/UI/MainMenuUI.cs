@@ -131,7 +131,8 @@ namespace GravedadCero.UI
             if (name == "Main") RebuildMainButtons();
             if (name == "Sections") RebuildSectionCards();
             if (name == "Character") RefreshSkin();
-            if (nameplate != null) nameplate.SetActive(name != "Character");
+            // La ficha del personaje sobra en Personaje y estorba a la lista larga de Secciones.
+            if (nameplate != null) nameplate.SetActive(name != "Character" && name != "Sections");
             if (cameraDrift != null) cameraDrift.SetFocus(name == "Character");
             UIReveal.Play(panels[name], 0f, new Vector2(-24f, 0f), 0.28f);
             UIFactory.SelectFirst(panels[name]);
@@ -234,12 +235,16 @@ namespace GravedadCero.UI
         {
             var panel = panels["Sections"].transform;
             UIFactory.Clear(panel);
+            // Con más de tres secciones las tarjetas se compactan para caber sobre la barra inferior.
+            bool compact = sections.Length > 3;
+            float cardHeight = compact ? 88f : 112f;
+            panel.GetComponent<VerticalLayoutGroup>().spacing = compact ? 8f : 14f;
             for (int i = 0; i < sections.Length; i++)
             {
                 int index = i;
                 bool completed = i < GameProgress.UnlockedSection;
                 bool unlocked = i <= GameProgress.UnlockedSection;
-                var card = UIFactory.Button(panel, UIFactory.SectionName(sections[i].title), () => LoadSection(index), 112,
+                var card = UIFactory.Button(panel, UIFactory.SectionName(sections[i].title), () => LoadSection(index), cardHeight,
                     unlocked ? sections[i].description : "Completa la sección anterior para desbloquearla.");
                 card.interactable = unlocked;
                 var t = card.transform;
@@ -260,7 +265,7 @@ namespace GravedadCero.UI
                     icon.rectTransform.pivot = new Vector2(1, 1);
                 }
             }
-            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"));
+            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"), compact ? 60f : 68f);
         }
 
         void BuildCharacterPanel()

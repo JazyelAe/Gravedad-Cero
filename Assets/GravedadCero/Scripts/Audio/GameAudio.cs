@@ -13,8 +13,8 @@ namespace GravedadCero.Audio
     /// Música y efectos de sonido de todo el juego. Se crea sola al arrancar y sobrevive a los
     /// cambios de escena, así que la música no se corta: al cargar una escena hace un fundido
     /// cruzado hacia su pista (o sigue con la misma si no cambia). Escucha los eventos de los
-    /// componentes de la escena (gravedad, anclaje, puertas, placas, interruptores,
-    /// reaparición, pausa y victoria); ninguno de ellos conoce el audio. Usa tiempo no
+    /// componentes de la escena (gravedad, anclaje, puertas, placas, interruptores, puntos de
+    /// control, reaparición, pausa y victoria); ninguno de ellos conoce el audio. Usa tiempo no
     /// escalado, así que funciona en pausa.
     /// </summary>
     public class GameAudio : MonoBehaviour
@@ -152,6 +152,8 @@ namespace GravedadCero.Audio
                 interactor.Interacted += _ => Play(catalog.switchUsed);
             foreach (var recovery in FindObjectsByType<FallRecovery>())
                 recovery.Respawned += () => Play(catalog.respawn, 0.9f);
+            foreach (var checkpoint in FindObjectsByType<Checkpoint>())
+                checkpoint.Reached += _ => Play(catalog.switchUsed, 0.8f);
             foreach (var pause in FindObjectsByType<PauseController>())
                 pause.PauseChanged += paused => duckTarget = paused ? PausedMusicLevel : 1f;
             foreach (var level in FindObjectsByType<LevelManager>())

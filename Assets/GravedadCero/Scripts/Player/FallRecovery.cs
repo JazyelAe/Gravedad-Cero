@@ -8,8 +8,8 @@ namespace GravedadCero.Player
     /// <summary>
     /// Red de seguridad: si Kai pasa demasiado tiempo sin tocar una superficie (por ejemplo,
     /// tras cambiar la gravedad hacia el vacío), se aleja demasiado o entra en una
-    /// HazardZone, vuelve a su punto de aparición con la gravedad inicial.
-    /// Versión provisional de los checkpoints del Sprint 4.
+    /// HazardZone, vuelve a su punto de aparición con la gravedad inicial. Los puntos de
+    /// control (Checkpoint) cambian ese punto.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(PlayerMotor))]
     public class FallRecovery : MonoBehaviour
@@ -52,7 +52,14 @@ namespace GravedadCero.Player
             if (other.GetComponent<HazardZone>() != null) Respawn();
         }
 
-        /// <summary>Se lanza cada vez que Kai reaparece en el inicio.</summary>
+        /// <summary>Cambia el punto de reaparición (lo usan los puntos de control).</summary>
+        public void SetSpawn(Vector3 position, Quaternion rotation)
+        {
+            spawnPosition = position;
+            spawnRotation = rotation;
+        }
+
+        /// <summary>Se lanza cada vez que Kai reaparece (en el inicio o en el último punto de control).</summary>
         public event Action Respawned;
 
         public void Respawn()

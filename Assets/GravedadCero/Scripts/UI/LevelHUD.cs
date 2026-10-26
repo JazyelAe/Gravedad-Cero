@@ -12,7 +12,8 @@ namespace GravedadCero.UI
     /// Interfaz de la sección con el estilo Helios-7, construida por código: una tarjeta de
     /// introducción (sección, objetivo, pista y controles esenciales) que se desvanece cuando
     /// Kai empieza a moverse o a los pocos segundos, un objetivo compacto arriba a la
-    /// izquierda, la indicación contextual abajo al centro ([Clic] Anclar, [E] Activar) y la pantalla
+    /// izquierda, la indicación contextual abajo al centro ([Clic] Anclar, [E] Activar), un aviso al
+    /// alcanzar un punto de control y la pantalla
     /// de victoria con botones (Continuar, Repetir, Menú) que funcionan con ratón y teclado.
     /// La lista completa de controles está en el menú de pausa. Solo lee estado de otros
     /// componentes y, en la victoria, le pide a LevelManager que cambie de escena.
@@ -35,10 +36,13 @@ namespace GravedadCero.UI
         const float IntroInner = IntroWidth - 72f;
         const float ObjectiveWidth = 600f;
         const float BannerSeconds = 0.6f;
+        const float CheckpointNoticeSeconds = 2.5f;
 
         CanvasGroup hudGroup;
         PauseController pauseController;
         GameObject pauseTip;
+        CanvasGroup checkpointNotice;
+        float checkpointNoticeLeft;
         GameObject promptChip;
         GameObject promptKeyClick;
         GameObject promptKeyUse;
@@ -72,6 +76,7 @@ namespace GravedadCero.UI
             BuildCompactObjective(root, title, objective);
             BuildPrompt(root);
             BuildPauseTip(root);
+            BuildCheckpointNotice(root);
             BuildVictory(root, title);
         }
 
@@ -79,12 +84,14 @@ namespace GravedadCero.UI
         {
             if (levelManager != null) levelManager.Completed += ShowVictory;
             if (pauseController != null) pauseController.PauseChanged += OnPauseChanged;
+            foreach (var checkpoint in FindObjectsByType<Checkpoint>()) checkpoint.Reached += ShowCheckpointNotice;
         }
 
         void OnDisable()
         {
             if (levelManager != null) levelManager.Completed -= ShowVictory;
             if (pauseController != null) pauseController.PauseChanged -= OnPauseChanged;
+            foreach (var checkpoint in FindObjectsByType<Checkpoint>()) checkpoint.Reached -= ShowCheckpointNotice;
         }
 
         // El menú de pausa tiene su propia composición: el HUD se oculta mientras está abierto.
@@ -93,6 +100,7 @@ namespace GravedadCero.UI
         void Update()
         {
             UpdateIntro();
+            UpdateCheckpointNotice();
 
             if (levelManager != null && levelManager.IsCompleted)
             {
@@ -243,6 +251,37 @@ namespace GravedadCero.UI
             UIFactory.Place(tip, new Vector2(0, 0), new Vector2(40, 30), tip.sizeDelta);
             pauseTip = tip.gameObject;
             UIFactory.WithShadow(tip.Find("Action").GetComponent<TMP_Text>()).color = UITheme.TextSecondary;
+        }
+
+        // ---------- Punto de control ----------
+
+        /// <summary>True mientras se ve el aviso de punto de control.</summary>
+        public bool CheckpointNoticeVisible => checkpointNotice != null && checkpointNotice.alpha > 0f;
+
+        void BuildCheckpointNotice(Transform root)
+        {
+            var chip = UIFactory.Panel(root, "CheckpointNotice", new Vector2(1, 1), new Vector2(-40, -36), 420);
+            var layout = chip.GetComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(24, 24, 12, 14);
+            layout.spacing = 2;
+            chip.transform.Find("Frame").GetComponent<Image>().color = new Color(UITheme.Success.r, UITheme.Success.g, UITheme.Success.b, 0.6f);
+            var caps = UIFactory.Caps(chip.transform, "Label", "Punto de control", UITheme.Success, 18);
+            caps.alignment = TextAlignmentOptions.Midline;
+            caps.gameObject.AddComponent<LayoutElement>().preferredHeight = 28;
+            UIFactory.PanelText(chip.transform, "Text", "Si caes, reapareces aquí.", UITheme.SizeSmall, 32, UITheme.Text);
+            checkpointNotice = chip.AddComponent<CanvasGroup>();
+            checkpointNotice.blocksRaycasts = false;
+            checkpointNotice.alpha = 0f;
+        }
+
+        void ShowCheckpointNotice(Checkpoint checkpoint) => checkpointNoticeLeft = CheckpointNoticeSeconds;
+
+        void UpdateCheckpointNotice()
+        {
+            checkpointNoticeLeft = Mathf.Max(0f, checkpointNoticeLeft - Time.unscaledDeltaTime);
+            // Aparece rápido y se desvanece durante el último medio segundo.
+            float target = Mathf.Clamp01(checkpointNoticeLeft / 0.5f);
+            checkpointNotice.alpha = Mathf.MoveTowards(checkpointNotice.alpha, target, Time.unscaledDeltaTime * 6f);
         }
 
         // ---------- Victoria ----------
