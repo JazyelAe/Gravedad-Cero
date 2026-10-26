@@ -3204,6 +3204,12 @@ MonoBehaviour:
   - title: "1-3 \xB7 Esclusa de carga"
     sceneName: Level_01_3_CargoLock
     description: Coordina dos cajas y dos placas para abrir la esclusa.
+  - title: "1-4 \xB7 Anillo de rotaci\xF3n"
+    sceneName: Level_01_4_RotationRing
+    description: Suelo, pared y techo electrificados por tramos.
+  - title: "1-5 \xB7 N\xFAcleo del reactor"
+    sceneName: Level_01_5_Core
+    description: "La gravedad tambi\xE9n puede apuntar al norte."
   preview: {fileID: 499102763}
   cameraDrift: {fileID: 255329610}
   version: BETA 0.2
