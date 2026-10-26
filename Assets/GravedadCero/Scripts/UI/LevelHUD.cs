@@ -12,7 +12,7 @@ namespace GravedadCero.UI
     /// Interfaz de la sección con el estilo Helios-7, construida por código: una tarjeta de
     /// introducción (sección, objetivo, pista y controles esenciales) que se desvanece cuando
     /// Kai empieza a moverse o a los pocos segundos, un objetivo compacto arriba a la
-    /// izquierda, la mira, la indicación contextual ([Clic] Anclar, [E] Activar) y la pantalla
+    /// izquierda, la indicación contextual abajo al centro ([Clic] Anclar, [E] Activar) y la pantalla
     /// de victoria con botones (Continuar, Repetir, Menú) que funcionan con ratón y teclado.
     /// La lista completa de controles está en el menú de pausa. Solo lee estado de otros
     /// componentes y, en la victoria, le pide a LevelManager que cambie de escena.
@@ -36,13 +36,9 @@ namespace GravedadCero.UI
         const float ObjectiveWidth = 600f;
         const float BannerSeconds = 0.6f;
 
-        static readonly Color Neutral = new Color(1f, 1f, 1f, 0.7f);
-
         CanvasGroup hudGroup;
         PauseController pauseController;
         GameObject pauseTip;
-        Image crosshairRing;
-        Image crosshairDot;
         GameObject promptChip;
         GameObject promptKeyClick;
         GameObject promptKeyUse;
@@ -74,7 +70,6 @@ namespace GravedadCero.UI
 
             BuildIntro(root, title, objective, hint);
             BuildCompactObjective(root, title, objective);
-            BuildCrosshair(root);
             BuildPrompt(root);
             BuildPauseTip(root);
             BuildVictory(root, title);
@@ -102,7 +97,6 @@ namespace GravedadCero.UI
             if (levelManager != null && levelManager.IsCompleted)
             {
                 promptChip.SetActive(false);
-                crosshairRing.enabled = crosshairDot.enabled = false;
                 UpdateVictory();
                 return;
             }
@@ -110,19 +104,13 @@ namespace GravedadCero.UI
             AnchorableBody target = gravitationalTool != null ? gravitationalTool.Target : null;
             if (target != null)
             {
-                SetCrosshair(UITheme.Cyan, 1.15f);
                 ShowPrompt(true, target.IsAnchored ? "Soltar caja" : "Anclar caja", UITheme.Cyan);
             }
             else if (interactor != null && interactor.Current != null)
             {
-                SetCrosshair(UITheme.Amber, 1f);
                 ShowPrompt(false, interactor.Current.Prompt, UITheme.Amber);
             }
-            else
-            {
-                SetCrosshair(Neutral, 1f);
-                promptChip.SetActive(false);
-            }
+            else promptChip.SetActive(false);
         }
 
         /// <summary>Empieza a desvanecer la introducción (si sigue visible).</summary>
@@ -213,29 +201,13 @@ namespace GravedadCero.UI
                 ObjectiveWidth - 52, 4);
         }
 
-        // ---------- Mira e indicación ----------
-
-        void BuildCrosshair(Transform root)
-        {
-            crosshairRing = UIFactory.Image(root, "Crosshair", UITheme.Ring, Neutral, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(30, 30));
-            crosshairDot = UIFactory.Image(crosshairRing.transform, "Dot", UITheme.Dot, Neutral, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(7, 7));
-        }
-
-        void SetCrosshair(Color color, float scale)
-        {
-            crosshairRing.enabled = crosshairDot.enabled = true;
-            // Mientras se ve la tarjeta de introducción, la mira no se dibuja encima.
-            color.a *= 1f - IntroAlpha;
-            crosshairRing.color = crosshairDot.color = color;
-            float s = Mathf.MoveTowards(crosshairRing.rectTransform.localScale.x, scale, Time.unscaledDeltaTime * 2f);
-            crosshairRing.rectTransform.localScale = Vector3.one * s;
-        }
+        // ---------- Indicación contextual ----------
 
         void BuildPrompt(Transform root)
         {
             promptChip = new GameObject("Prompt", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(ContentSizeFitter));
             promptChip.transform.SetParent(root, false);
-            UIFactory.Place((RectTransform)promptChip.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -78), new Vector2(300, 56));
+            UIFactory.Place((RectTransform)promptChip.transform, new Vector2(0.5f, 0f), new Vector2(0, 110), new Vector2(300, 56));
             UIFactory.Frame(promptChip.transform, new Color(UITheme.Deep.r, UITheme.Deep.g, UITheme.Deep.b, 0.85f), UITheme.CyanDim);
             var layout = promptChip.GetComponent<HorizontalLayoutGroup>();
             layout.padding = new RectOffset(12, 22, 9, 9);
