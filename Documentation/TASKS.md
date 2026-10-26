@@ -17,9 +17,39 @@ Estados:
 | V.2 | Importación del Kenney Space Station Kit (CC0) y `Showcase_Kenney` | `7c57ed6` | Sí | No aplica | Sí: revisión visual |
 | 3.2 | Caja de carga (`CargoBox`), anclaje con clic (`GravitationalTool`, `AnchorableBody`) | `4115bc7` | Sí | Sí: Play Mode, ver abajo | Sí (25-10-2026) |
 | N1 | Nivel 1 `Level_01_DockingBay`: placa de presión, salida, `LevelManager`, HUD, reinicio | `7e147cd` | Sí | Sí: Play Mode, ver abajo | Sí (25-10-2026) |
-| V.3 | Personaje animado de Kai: Kenney Animated Characters, skin propia, `PlayerAnimator`, `Kai.controller` | `feat: add animated Kai character` | Sí | Sí: Play Mode con capturas, ver abajo | **Pendiente** |
+| V.3 | Personaje animado de Kai: Kenney Animated Characters, skin propia, `PlayerAnimator`, `Kai.controller` | `7f9d27f` | Sí | Sí: Play Mode con capturas, ver abajo | Sí: el desarrollador jugó la build (25-10-2026) |
+| B.1 | Build de Windows 64 bits (`Builds/Windows/GravedadCero.exe`, no versionado) | `fe9b80d` | Sí | Prueba de humo: el .exe se ejecutó 20 s sin errores | Sí |
+| M.1 | Menú principal, progreso con `GameProgress` (PlayerPrefs), flujo Enter/Esc entre secciones | `b4fc5fd` | Sí | Sí: 10 comprobaciones en Play Mode | **Pendiente** |
+| S.1 | Cinco skins para Kai (`SkinCatalog`, `KaiSkinApplier`) elegibles desde el menú | `283d40b` | Sí | Sí: cubierta por la prueba del menú | **Pendiente** |
+| N1.2 | Secciones 1-2 (pozo, `HazardZone`, interruptor en el techo) y 1-3 (dos placas, `ActivationGate`) | `feat: add Sector 1 sections 1-2 and 1-3` | Sí | Sí: 16 + 18 comprobaciones en Play Mode | **Pendiente** |
 
-## Última prueba automática en Play Mode (25-10-2026)
+## Pruebas del menú y de las secciones 1-2 y 1-3 (25-10-2026)
+
+Todas se superaron a la primera, con la consola sin errores ni advertencias. Cada prueba restaura el progreso guardado al terminar.
+
+- **Menú (10/10):**
+  - EventSystem presente y 3 secciones configuradas.
+  - Una sección bloqueada no se carga.
+  - Siguiente y Anterior cambian la skin y dan la vuelta al catálogo, y la elección se guarda.
+  - Nueva partida carga la sección 1-1 con la skin elegida aplicada.
+  - Salir al menú vuelve a `MainMenu`.
+- **Sección 1-2 (16/16):**
+  - Caer al fondo rojo devuelve a Kai al inicio en 0.7 s.
+  - R lleva a Kai a la pared este, por la que cruza el pozo caminando (4.8 s). Q lo devuelve al suelo al otro lado.
+  - F lo lleva al techo, donde el interruptor queda al alcance y abre la compuerta.
+  - Kai completa la sección, se desbloquea la 1-3 y Continuar la carga.
+- **Sección 1-3 (18/18):**
+  - Con la gravedad al este, la caja B presiona la placa alta; la caja A queda abajo y la compuerta sigue cerrada.
+  - Se ancla la caja B. Con F, la caja A presiona la placa baja y la compuerta se abre.
+  - Con la gravedad normal, la caja A sigue en su placa por su propio peso.
+  - Kai completa la sección, que es el final del sector, y Continuar vuelve al menú.
+
+**No cubierto por estas pruebas:**
+- El clic real con el mouse sobre los botones del menú: la prueba llama a las mismas funciones que los botones.
+- La navegación con teclado del menú.
+- Las pruebas de 1-2 y 1-3 teletransportan a Kai en algunos tramos: junto al interruptor y junto a la caja.
+
+## Última prueba automática del Nivel 1 en Play Mode (25-10-2026)
 
 `Level_01_DockingBay`, después de la Tarea V.3: **28 de 28 comprobaciones superadas.** Son las 23 del nivel más 5 del personaje:
 - Kai tiene un Animator humanoide con su controlador.

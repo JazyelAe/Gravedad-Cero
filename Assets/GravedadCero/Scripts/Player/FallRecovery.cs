@@ -1,12 +1,14 @@
 using GravedadCero.Gravity;
+using GravedadCero.Level;
 using UnityEngine;
 
 namespace GravedadCero.Player
 {
     /// <summary>
     /// Red de seguridad: si Kai pasa demasiado tiempo sin tocar una superficie (por ejemplo,
-    /// tras cambiar la gravedad hacia el vacío) o se aleja demasiado, vuelve a su punto de
-    /// aparición con la gravedad inicial. Versión provisional de los checkpoints del Sprint 4.
+    /// tras cambiar la gravedad hacia el vacío), se aleja demasiado o entra en una
+    /// HazardZone, vuelve a su punto de aparición con la gravedad inicial.
+    /// Versión provisional de los checkpoints del Sprint 4.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(PlayerMotor))]
     public class FallRecovery : MonoBehaviour
@@ -42,6 +44,11 @@ namespace GravedadCero.Player
             bool fellTooLong = airTime > maxAirTime;
             bool tooFar = (body.position - spawnPosition).sqrMagnitude > maxDistanceFromSpawn * maxDistanceFromSpawn;
             if (fellTooLong || tooFar) Respawn();
+        }
+
+        void OnTriggerEnter(Collider other)
+        {
+            if (other.GetComponent<HazardZone>() != null) Respawn();
         }
 
         public void Respawn()
