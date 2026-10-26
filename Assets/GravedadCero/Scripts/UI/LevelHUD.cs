@@ -1,6 +1,7 @@
 using GravedadCero.Interaction;
 using GravedadCero.Level;
 using GravedadCero.Player;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,8 +33,8 @@ namespace GravedadCero.UI
 
         static readonly Color Neutral = new Color(1f, 1f, 1f, 0.6f);
 
-        Text crosshair;
-        Text prompt;
+        TMP_Text crosshair;
+        TMP_Text prompt;
         GameObject victoryPanel;
         CanvasGroup intro;
         CanvasGroup compactObjective;
@@ -155,7 +156,7 @@ namespace GravedadCero.UI
             if (!string.IsNullOrEmpty(hint)) UIFactory.PanelText(t, "Hint", $"<i>{hint}</i>", 24, 64, UIFactory.Amber);
             UIFactory.PanelText(t, "Controls", EssentialControls, 22, 36, new Color(1f, 1f, 1f, 0.8f));
             // Los textos del panel usan el ancho completo de la tarjeta.
-            foreach (var label in panel.GetComponentsInChildren<Text>()) ((RectTransform)label.transform).sizeDelta = new Vector2(1040, ((RectTransform)label.transform).sizeDelta.y);
+            foreach (var label in panel.GetComponentsInChildren<TMP_Text>()) ((RectTransform)label.transform).sizeDelta = new Vector2(1040, ((RectTransform)label.transform).sizeDelta.y);
         }
 
         static CanvasGroup Group(GameObject go) => go.AddComponent<CanvasGroup>();

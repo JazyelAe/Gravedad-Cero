@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GravedadCero.Level;
 using GravedadCero.Save;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,8 +32,8 @@ namespace GravedadCero.UI
 
         readonly Dictionary<string, GameObject> panels = new Dictionary<string, GameObject>();
         GameObject root;
-        Text confirmMessage;
-        Text sensitivityValue;
+        TMP_Text confirmMessage;
+        TMP_Text sensitivityValue;
         Slider sensitivitySlider;
         Toggle invertToggle;
         Action pendingConfirm;

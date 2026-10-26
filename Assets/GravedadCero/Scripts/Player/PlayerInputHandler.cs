@@ -72,6 +72,13 @@ namespace GravedadCero.Player
 
         void Update()
         {
+            // Durante un fundido entre escenas no se acepta ninguna orden.
+            if (SceneTransition.IsTransitioning)
+            {
+                motor.SetMoveInput(Vector3.zero);
+                return;
+            }
+
             if (levelManager != null)
             {
                 // Retroceso reinicia al instante, también desde la pausa.

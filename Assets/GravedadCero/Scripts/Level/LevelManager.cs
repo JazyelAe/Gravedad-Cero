@@ -8,7 +8,8 @@ namespace GravedadCero.Level
     /// <summary>
     /// Estado de una sección: el objetivo que se muestra al jugador, si ya se completó y
     /// cómo continuar (siguiente sección, reinicio o menú). Al completarse desbloquea la
-    /// siguiente sección en GameProgress. No conoce al jugador ni la interfaz.
+    /// siguiente sección en GameProgress. Los cambios de escena pasan por SceneTransition
+    /// (fundido y protección contra cargas dobles). No conoce al jugador ni la interfaz.
     /// </summary>
     public class LevelManager : MonoBehaviour
     {
@@ -47,18 +48,21 @@ namespace GravedadCero.Level
         {
             // Por ruta y no por índice: así funciona aunque la escena se haya cargado sin
             // índice de Build Settings (por ejemplo, desde el editor o las pruebas).
-            SceneManager.LoadScene(SceneManager.GetActiveScene().path);
+            SceneTransition.Load(SceneManager.GetActiveScene().path);
         }
 
         /// <summary>Carga la siguiente sección o, si no hay, vuelve al menú.</summary>
         public void Continue()
         {
-            SceneManager.LoadScene(HasNext ? nextScene : menuScene);
+            SceneTransition.Load(HasNext ? nextScene : menuScene);
         }
 
         public void ExitToMenu()
         {
-            SceneManager.LoadScene(menuScene);
+            SceneTransition.Load(menuScene);
         }
+
+        /// <summary>Nombre de la escena siguiente, o vacío si esta es la última del sector.</summary>
+        public string NextSceneName => nextScene;
     }
 }

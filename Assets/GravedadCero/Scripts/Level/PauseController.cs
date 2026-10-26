@@ -17,7 +17,7 @@ namespace GravedadCero.Level
         public bool IsPaused { get; private set; }
 
         /// <summary>No se puede pausar con la sección completada (la victoria tiene sus propias teclas).</summary>
-        public bool CanPause => levelManager == null || !levelManager.IsCompleted;
+        public bool CanPause => (levelManager == null || !levelManager.IsCompleted) && !SceneTransition.IsTransitioning;
 
         /// <summary>Se lanza con el nuevo estado cada vez que cambia.</summary>
         public event Action<bool> PauseChanged;
