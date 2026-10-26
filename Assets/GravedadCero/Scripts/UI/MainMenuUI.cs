@@ -51,7 +51,7 @@ namespace GravedadCero.UI
         void Awake()
         {
             root = UIFactory.Canvas(transform, "Menu Canvas");
-            BuildBackdrop();
+            UIFactory.Backdrop(root);
             BuildBrand();
             BuildNameplate();
             BuildStatusBar();
@@ -139,21 +139,6 @@ namespace GravedadCero.UI
 
         // ---------- Fondo, logotipo y barras ----------
 
-        void BuildBackdrop()
-        {
-            var shade = UIFactory.Image(root, "LeftShade", UITheme.GradientLeft, new Color(UITheme.Deep.r, UITheme.Deep.g, UITheme.Deep.b, 0.94f),
-                new Vector2(0, 0.5f), Vector2.zero, new Vector2(1250, 0));
-            shade.rectTransform.anchorMin = new Vector2(0, 0);
-            shade.rectTransform.anchorMax = new Vector2(0, 1);
-            shade.rectTransform.pivot = new Vector2(0, 0.5f);
-            var scan = UIFactory.FullScreenImage(root, "Scanlines", new Color(1, 1, 1, 0.025f), UITheme.Scanlines);
-            scan.type = Image.Type.Tiled;
-            // Riel vertical a la izquierda con marcas: detalle de interfaz de nave.
-            var rail = UIFactory.Image(root, "Rail", null, UITheme.CyanDim, new Vector2(0, 0.5f), new Vector2(76, 30), new Vector2(2, 820));
-            for (int i = 0; i < 5; i++)
-                UIFactory.Image(rail.transform, "Tick", null, i == 0 ? UITheme.Amber : UITheme.CyanDim, new Vector2(0.5f, 1f), new Vector2(0, -i * 205f), new Vector2(i == 0 ? 14 : 8, 2));
-        }
-
         void BuildBrand()
         {
             var brand = new GameObject("Brand", typeof(RectTransform), typeof(CanvasGroup));
@@ -163,7 +148,7 @@ namespace GravedadCero.UI
             rect.anchoredPosition = new Vector2(120, -64);
             rect.sizeDelta = new Vector2(1100, 220);
             var kicker = UIFactory.Caps(brand.transform, "Kicker", "Estación orbital Helios-7  /  Sector 1", UITheme.Amber, UITheme.SizeCaption);
-            Place(kicker.rectTransform, new Vector2(0, 1), new Vector2(0, -16), new Vector2(900, 32), new Vector2(0, 1));
+            UIFactory.Place(kicker.rectTransform, new Vector2(0, 1), new Vector2(0, -16), new Vector2(900, 32), new Vector2(0, 1));
             var title = UIFactory.Title(brand.transform, "Title", "GRAVEDAD CERO", UITheme.SizeDisplay, TextAnchor.UpperLeft, new Vector2(0, 1),
                 new Vector2(-4, -46), new Vector2(1100, 106), UITheme.Text);
             title.characterSpacing = 2f;
@@ -187,7 +172,7 @@ namespace GravedadCero.UI
             var catalog = preview != null ? preview.Catalog : null;
             var role = UIFactory.Caps(nameplate.transform, "Role", catalog != null ? catalog.Role : "", UITheme.Amber);
             role.alignment = TextAlignmentOptions.MidlineRight;
-            Place(role.rectTransform, new Vector2(1, 1), new Vector2(-28, -18), new Vector2(420, 30));
+            UIFactory.Place(role.rectTransform, new Vector2(1, 1), new Vector2(-28, -18), new Vector2(420, 30));
             UIFactory.Title(nameplate.transform, "Name", (catalog != null ? catalog.CharacterName : "Kai").ToUpperInvariant(),
                 44, TextAnchor.UpperRight, new Vector2(1, 1), new Vector2(-28, -48), new Vector2(420, 54), UITheme.Text);
             nameplateSkin = UIFactory.Label(nameplate.transform, "Skin", "", UITheme.SizeSmall, TextAnchor.UpperRight,
@@ -207,16 +192,16 @@ namespace GravedadCero.UI
 
             statusDot = UIFactory.Image(bar.transform, "Dot", UITheme.Dot, UITheme.Amber, new Vector2(0, 0.5f), new Vector2(120, 0), new Vector2(16, 16));
             var status = UIFactory.Caps(bar.transform, "Status", "Sistema gravitacional: inestable", UITheme.TextSecondary);
-            Place(status.rectTransform, new Vector2(0, 0.5f), new Vector2(146, 0), new Vector2(620, 30), new Vector2(0, 0.5f));
+            UIFactory.Place(status.rectTransform, new Vector2(0, 0.5f), new Vector2(146, 0), new Vector2(620, 30), new Vector2(0, 0.5f));
 
             var hints = UIFactory.Row(bar.transform, "Hints", 40f, 22f, TextAnchor.MiddleRight);
-            Place(hints, new Vector2(1, 0.5f), new Vector2(-330, 0), new Vector2(620, 40), new Vector2(1, 0.5f));
+            UIFactory.Place(hints, new Vector2(1, 0.5f), new Vector2(-330, 0), new Vector2(620, 40), new Vector2(1, 0.5f));
             UIFactory.KeyHint(hints, new[] { "Flechas" }, "Navegar", UITheme.SizeCaption, 110);
             UIFactory.KeyHint(hints, new[] { "Enter" }, "Elegir", UITheme.SizeCaption, 80);
             UIFactory.KeyHint(hints, new[] { "Esc" }, "Volver", UITheme.SizeCaption, 80);
             var ver = UIFactory.Caps(bar.transform, "Version", version, UITheme.CyanDim);
             ver.alignment = TextAlignmentOptions.MidlineRight;
-            Place(ver.rectTransform, new Vector2(1, 0.5f), new Vector2(-120, 0), new Vector2(200, 30), new Vector2(1, 0.5f));
+            UIFactory.Place(ver.rectTransform, new Vector2(1, 0.5f), new Vector2(-120, 0), new Vector2(200, 30), new Vector2(1, 0.5f));
             UIReveal.Play(bar.gameObject.AddComponent<CanvasGroup>().gameObject, 0.6f, new Vector2(0f, -20f), 0.5f);
         }
 
@@ -254,21 +239,21 @@ namespace GravedadCero.UI
                 int index = i;
                 bool completed = i < GameProgress.UnlockedSection;
                 bool unlocked = i <= GameProgress.UnlockedSection;
-                var card = UIFactory.Button(panel, SectionName(sections[i].title), () => LoadSection(index), 112,
+                var card = UIFactory.Button(panel, UIFactory.SectionName(sections[i].title), () => LoadSection(index), 112,
                     unlocked ? sections[i].description : "Completa la sección anterior para desbloquearla.");
                 card.interactable = unlocked;
                 var t = card.transform;
                 ShiftLabels(t, 150f);
                 var chevron = t.Find("Chevron") as RectTransform;
                 if (chevron != null) chevron.anchorMin = chevron.anchorMax = new Vector2(1, 0.32f);
-                var code = UIFactory.Title(t, "Code", SectionCode(sections[i].title), 38, TextAnchor.MiddleLeft, new Vector2(0, 0.5f),
+                var code = UIFactory.Title(t, "Code", UIFactory.SectionCode(sections[i].title), 38, TextAnchor.MiddleLeft, new Vector2(0, 0.5f),
                     new Vector2(34, 0), new Vector2(110, 60), unlocked ? UITheme.Cyan : UITheme.Locked);
                 code.rectTransform.pivot = new Vector2(0, 0.5f);
                 string state = completed ? "Completada" : unlocked ? "Disponible" : "Bloqueada";
                 Color stateColor = completed ? UITheme.Success : unlocked ? UITheme.Amber : UITheme.Locked;
                 var stateLabel = UIFactory.Caps(t, "State", state, stateColor, 18);
                 stateLabel.alignment = TextAlignmentOptions.MidlineRight;
-                Place(stateLabel.rectTransform, new Vector2(1, 1), new Vector2(-64, -18), new Vector2(220, 26), new Vector2(1, 1));
+                UIFactory.Place(stateLabel.rectTransform, new Vector2(1, 1), new Vector2(-64, -18), new Vector2(220, 26), new Vector2(1, 1));
                 if (completed || !unlocked)
                 {
                     var icon = UIFactory.Image(t, "StateIcon", completed ? UITheme.Check : UITheme.Lock, stateColor, new Vector2(1, 1), new Vector2(-30, -16), new Vector2(24, 24));
@@ -374,20 +359,6 @@ namespace GravedadCero.UI
 
         // ---------- Utilidades ----------
 
-        /// <summary>"1-1 · Muelle de acoplamiento" → "1-1".</summary>
-        static string SectionCode(string title)
-        {
-            int dot = title.IndexOf('·');
-            return dot > 0 ? title.Substring(0, dot).Trim() : "";
-        }
-
-        /// <summary>"1-1 · Muelle de acoplamiento" → "Muelle de acoplamiento".</summary>
-        static string SectionName(string title)
-        {
-            int dot = title.IndexOf('·');
-            return dot > 0 ? title.Substring(dot + 1).Trim() : title;
-        }
-
         static void ShiftLabels(Transform button, float x)
         {
             foreach (string child in new[] { "Label", "Subtitle" })
@@ -397,14 +368,6 @@ namespace GravedadCero.UI
                 t.anchoredPosition = new Vector2(x, t.anchoredPosition.y);
                 t.sizeDelta = new Vector2(t.sizeDelta.x + 120f, t.sizeDelta.y);
             }
-        }
-
-        static void Place(RectTransform rect, Vector2 anchor, Vector2 position, Vector2 size, Vector2? pivot = null)
-        {
-            rect.anchorMin = rect.anchorMax = anchor;
-            rect.pivot = pivot ?? anchor;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
         }
     }
 }

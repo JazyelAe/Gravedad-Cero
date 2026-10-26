@@ -217,6 +217,8 @@ namespace GravedadCero.UI
         {
             var go = new GameObject("Spacer", typeof(RectTransform), typeof(LayoutElement));
             go.transform.SetParent(panel, false);
+            // Los paneles no controlan la altura de sus hijos: cuenta la del RectTransform.
+            ((RectTransform)go.transform).sizeDelta = new Vector2(0, height);
             go.GetComponent<LayoutElement>().preferredHeight = height;
         }
 
@@ -369,7 +371,63 @@ namespace GravedadCero.UI
             return row;
         }
 
+        // ---------- Fondos ----------
+
+        /// <summary>
+        /// Fondo común de las pantallas de menú: degradado oscuro a la izquierda, tramado de
+        /// líneas y riel vertical con marcas (detalle de interfaz de nave).
+        /// </summary>
+        public static void Backdrop(Transform root, float shadeWidth = 1250f, float shadeAlpha = 0.94f)
+        {
+            var shade = Image(root, "LeftShade", UITheme.GradientLeft, new Color(UITheme.Deep.r, UITheme.Deep.g, UITheme.Deep.b, shadeAlpha),
+                new Vector2(0, 0.5f), Vector2.zero, new Vector2(shadeWidth, 0));
+            shade.rectTransform.anchorMin = new Vector2(0, 0);
+            shade.rectTransform.anchorMax = new Vector2(0, 1);
+            shade.rectTransform.pivot = new Vector2(0, 0.5f);
+            var scan = FullScreenImage(root, "Scanlines", new Color(1, 1, 1, 0.025f), UITheme.Scanlines);
+            scan.type = UnityEngine.UI.Image.Type.Tiled;
+            var rail = Image(root, "Rail", null, UITheme.CyanDim, new Vector2(0, 0.5f), new Vector2(76, 30), new Vector2(2, 820));
+            for (int i = 0; i < 5; i++)
+                Image(rail.transform, "Tick", null, i == 0 ? UITheme.Amber : UITheme.CyanDim, new Vector2(0.5f, 1f), new Vector2(0, -i * 205f), new Vector2(i == 0 ? 14 : 8, 2));
+        }
+
         // ---------- Utilidades ----------
+
+        /// <summary>Coloca un RectTransform con un mismo ancla (y pivote, si no se indica otro).</summary>
+        public static void Place(RectTransform rect, Vector2 anchor, Vector2 position, Vector2 size, Vector2? pivot = null)
+        {
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = pivot ?? anchor;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
+        /// <summary>"Sector 1-1 · Muelle de acoplamiento" → "1-1" (vacío si no tiene código).</summary>
+        public static string SectionCode(string title)
+        {
+            int dot = title.IndexOf('·');
+            if (dot <= 0) return "";
+            string code = title.Substring(0, dot).Trim();
+            int space = code.LastIndexOf(' ');
+            return space >= 0 ? code.Substring(space + 1) : code;
+        }
+
+        /// <summary>"Sector 1-1 · Muelle de acoplamiento" → "Muelle de acoplamiento".</summary>
+        public static string SectionName(string title)
+        {
+            int dot = title.IndexOf('·');
+            return dot > 0 ? title.Substring(dot + 1).Trim() : title;
+        }
+
+        /// <summary>Ajusta la altura de un texto de panel a lo que ocupa con el ancho dado.</summary>
+        public static TMP_Text FitHeight(TMP_Text label, float width, float extra = 6f)
+        {
+            float height = Mathf.Ceil(label.GetPreferredValues(label.text, width, 0f).y + extra);
+            label.rectTransform.sizeDelta = new Vector2(width, height);
+            var le = label.GetComponent<LayoutElement>();
+            if (le != null) le.preferredHeight = height;
+            return label;
+        }
 
         public static void Clear(Transform panel)
         {

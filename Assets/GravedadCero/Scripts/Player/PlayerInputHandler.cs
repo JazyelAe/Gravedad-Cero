@@ -3,6 +3,7 @@ using GravedadCero.Gravity;
 using GravedadCero.Interaction;
 using GravedadCero.Level;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace GravedadCero.Player
@@ -11,7 +12,8 @@ namespace GravedadCero.Player
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
     /// GravityCamera, Q/R/F para GravityController, E para PlayerInteractor, clic izquierdo
     /// para GravitationalTool, Retroceso para reiniciar, Esc para la pausa (o para volver al
-    /// menú tras completar la sección) y Enter para continuar. Es el único script del jugador
+    /// menú tras completar la sección) y Enter para continuar. En la victoria no se mueve a Kai
+    /// ni la cámara: el cursor queda libre para los botones. Es el único script del jugador
     /// que conoce el Input System. Mientras el juego está en pausa no envía ninguna orden de
     /// juego: timeScale no detiene el Input System. Las referencias de herramienta, nivel y
     /// pausa son opcionales (Test_Gravity no las usa).
@@ -95,7 +97,14 @@ namespace GravedadCero.Player
                     else pauseController.HandleCancel();
                     return;
                 }
-                if (levelManager.IsCompleted && confirmAction.WasPressedThisFrame()) { levelManager.Continue(); return; }
+                if (levelManager.IsCompleted)
+                {
+                    // Con un botón de la victoria resaltado, Enter lo pulsa la interfaz (Submit);
+                    // aquí solo se cubre el caso de que no haya ninguno seleccionado.
+                    if (confirmAction.WasPressedThisFrame() && !UIHasSelection()) levelManager.Continue();
+                    motor.SetMoveInput(Vector3.zero);
+                    return;
+                }
             }
 
             // En pausa no se mueve a Kai ni la cámara: se suelta cualquier movimiento pendiente.
@@ -106,13 +115,6 @@ namespace GravedadCero.Player
             }
 
             gravityCamera.AddLookInput(lookAction.ReadValue<Vector2>());
-
-            // Con la sección completada solo se permite mirar, continuar, reiniciar o salir.
-            if (levelManager != null && levelManager.IsCompleted)
-            {
-                motor.SetMoveInput(Vector3.zero);
-                return;
-            }
 
             // W/S y A/D se interpretan respecto a hacia dónde mira la cámara, aplanado
             // sobre el plano perpendicular a la gravedad de Kai.
@@ -132,6 +134,12 @@ namespace GravedadCero.Player
 
             if (interactor != null && interactAction.WasPressedThisFrame()) interactor.TryInteract();
             if (gravitationalTool != null && anchorAction.WasPressedThisFrame()) gravitationalTool.ToggleAnchor();
+        }
+
+        static bool UIHasSelection()
+        {
+            var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+            return selected != null && selected.activeInHierarchy;
         }
     }
 }

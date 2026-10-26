@@ -9,30 +9,38 @@ using UnityEngine.UI;
 namespace GravedadCero.UI
 {
     /// <summary>
-    /// Menú de pausa de una sección: Reanudar, Controles, Configuración, Reiniciar sección y
-    /// Volver al menú. Reiniciar y Volver al menú piden confirmación porque descartan el
-    /// avance de la sección (las secciones completadas siguen guardadas). Solo muestra el
-    /// estado de PauseController y le pide acciones; no toca el tiempo por su cuenta.
+    /// Menú de pausa de una sección, con la misma composición que el menú principal: título
+    /// a la izquierda, panel de opciones debajo y, a la derecha, el objetivo de la sección.
+    /// Opciones: Reanudar, Controles, Configuración, Reiniciar sección y Volver al menú.
+    /// Reiniciar y Volver al menú piden confirmación porque descartan el avance de la sección
+    /// (las secciones completadas siguen guardadas). Solo muestra el estado de
+    /// PauseController y le pide acciones; no toca el tiempo por su cuenta.
     /// </summary>
     public class PauseMenuUI : MonoBehaviour
     {
         [SerializeField] PauseController pauseController;
         [SerializeField] LevelManager levelManager;
 
-        const string FullControls =
-            "<b>WASD</b>  moverse (relativo a la cámara)\n" +
-            "<b>Mouse</b>  girar la cámara\n" +
-            "<b>Espacio</b>  saltar\n" +
-            "<b>Q / R</b>  girar la gravedad a la izquierda / derecha de Kai\n" +
-            "<b>F</b>  invertir la gravedad\n" +
-            "<b>Clic izquierdo</b>  anclar o soltar la caja de la mira\n" +
-            "<b>E</b>  usar interruptores\n" +
-            "<b>Retroceso</b>  reiniciar la sección al instante\n" +
-            "<b>Esc</b>  pausa";
+        static readonly (string[] keys, string action)[] FullControls =
+        {
+            (new[] { "W", "A", "S", "D" }, "Moverse (relativo a la cámara)"),
+            (new[] { "Mouse" }, "Girar la cámara"),
+            (new[] { "Espacio" }, "Saltar"),
+            (new[] { "Q", "R" }, "Girar la gravedad a la izquierda / derecha"),
+            (new[] { "F" }, "Invertir la gravedad"),
+            (new[] { "Clic" }, "Anclar o soltar la caja de la mira"),
+            (new[] { "E" }, "Usar interruptores"),
+            (new[] { "Retroceso" }, "Reiniciar la sección al instante"),
+            (new[] { "Esc" }, "Pausa / volver"),
+        };
+
+        const float KeyColumn = 250f;
 
         readonly Dictionary<string, GameObject> panels = new Dictionary<string, GameObject>();
         GameObject root;
-        TMP_Text confirmMessage;
+        GameObject objectiveCard;
+        TMP_Text confirmTitle;
+        TMP_Text confirmDetail;
         TMP_Text sensitivityValue;
         Slider sensitivitySlider;
         Toggle invertToggle;
@@ -45,15 +53,16 @@ namespace GravedadCero.UI
         {
             var canvas = UIFactory.Canvas(transform, "Pause Canvas", sortingOrder: 10);
             root = canvas.gameObject;
-            UIFactory.FullScreenImage(canvas, "Dim", new Color(0.01f, 0.02f, 0.04f, 0.6f));
-            UIFactory.Label(canvas, "Title", "PAUSA", 64, TextAnchor.UpperCenter, new Vector2(0.5f, 1), new Vector2(0, -110), new Vector2(1200, 90), Color.white, FontStyle.Bold);
-            UIFactory.Label(canvas, "Section", levelManager != null ? levelManager.LevelTitle : "", 28, TextAnchor.UpperCenter,
-                new Vector2(0.5f, 1), new Vector2(0, -195), new Vector2(1200, 50), UIFactory.Cyan);
+            UIFactory.FullScreenImage(canvas, "Dim", new Color(0.01f, 0.02f, 0.04f, 0.55f));
+            UIFactory.Backdrop(canvas, 1300f, 0.9f);
 
+            BuildHeading(canvas);
+            BuildObjectiveCard(canvas);
             BuildMainPanel(canvas);
             BuildControlsPanel(canvas);
             BuildSettingsPanel(canvas);
             BuildConfirmPanel(canvas);
+            BuildHints(canvas);
             root.SetActive(false);
         }
 
@@ -76,10 +85,10 @@ namespace GravedadCero.UI
         public void Resume() => pauseController.SetPaused(false);
 
         public void RequestRestart() =>
-            Confirm("¿Reiniciar la sección?\nSe perderá el avance de esta sección.", pauseController.RestartSection);
+            Confirm("¿Reiniciar la sección?", "Se perderá el avance de esta sección.", pauseController.RestartSection);
 
         public void RequestExitToMenu() =>
-            Confirm("¿Volver al menú principal?\nSe perderá el avance de esta sección.\nLas secciones completadas se conservan.", pauseController.ExitToMenu);
+            Confirm("¿Volver al menú principal?", "Se perderá el avance de esta sección. Las secciones completadas se conservan.", pauseController.ExitToMenu);
 
         public void ConfirmPending()
         {
@@ -120,6 +129,9 @@ namespace GravedadCero.UI
             CurrentPanel = name;
             foreach (var pair in panels) pair.Value.SetActive(pair.Key == name);
             if (name == "Settings") RefreshSettings();
+            // El objetivo se oculta con los paneles anchos para que no se solapen en 4:3.
+            objectiveCard.SetActive(name == "Main" || name == "Settings");
+            UIReveal.Play(panels[name], 0f, new Vector2(-24f, 0f), 0.24f);
             UIFactory.SelectFirst(panels[name]);
         }
 
@@ -136,62 +148,137 @@ namespace GravedadCero.UI
             }
         }
 
-        void Confirm(string message, Action action)
+        void Confirm(string title, string detail, Action action)
         {
             pendingConfirm = action;
-            confirmMessage.text = message;
+            confirmTitle.text = title;
+            confirmDetail.text = detail;
+            UIFactory.FitHeight(confirmDetail, 680 - 72);
             ShowPanel("Confirm");
         }
 
-        GameObject Panel(Transform canvas, string name, float width = 600)
+        GameObject Panel(Transform canvas, string name, string header, float width)
         {
-            var panel = UIFactory.Panel(canvas, name, new Vector2(0.5f, 1), new Vector2(0, -270), width);
+            var panel = UIFactory.Panel(canvas, name, new Vector2(0, 1), new Vector2(120, -290), width, header);
+            panel.AddComponent<CanvasGroup>();
             panels[name] = panel;
             return panel;
         }
 
+        void BuildHeading(Transform canvas)
+        {
+            string title = levelManager != null ? levelManager.LevelTitle : "";
+            string code = UIFactory.SectionCode(title);
+            var heading = new GameObject("Heading", typeof(RectTransform));
+            heading.transform.SetParent(canvas, false);
+            UIFactory.Place((RectTransform)heading.transform, new Vector2(0, 1), new Vector2(120, -64), new Vector2(1100, 200));
+            var h = heading.transform;
+            var kicker = UIFactory.Caps(h, "Kicker", string.IsNullOrEmpty(code) ? "Estación Helios-7  /  Sistema en espera" : $"Sección {code}  /  Sistema en espera", UITheme.Amber);
+            UIFactory.Place(kicker.rectTransform, new Vector2(0, 1), new Vector2(0, -16), new Vector2(900, 32));
+            var big = UIFactory.Title(h, "Title", "PAUSA", UITheme.SizeTitle + 16, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(-3, -48), new Vector2(900, 90), UITheme.Text);
+            big.characterSpacing = 4f;
+            UIFactory.Image(h, "Accent", null, UITheme.Cyan, new Vector2(0, 1), new Vector2(0, -142), new Vector2(200, 5)).rectTransform.pivot = new Vector2(0, 1);
+            UIFactory.Image(h, "Line", null, UITheme.CyanDim, new Vector2(0, 1), new Vector2(0, -146), new Vector2(720, 1)).rectTransform.pivot = new Vector2(0, 1);
+            UIFactory.Label(h, "Section", UIFactory.SectionName(title), UITheme.SizeBody, TextAnchor.UpperLeft, new Vector2(0, 1),
+                new Vector2(0, -160), new Vector2(900, 40), UITheme.TextSecondary);
+        }
+
+        void BuildObjectiveCard(Transform canvas)
+        {
+            const float width = 560f;
+            objectiveCard = UIFactory.Panel(canvas, "ObjectiveCard", new Vector2(1, 1), new Vector2(-120, -290), width, "Objetivo");
+            var t = objectiveCard.transform;
+            string objective = levelManager != null ? levelManager.Objective : "";
+            string hint = levelManager != null ? levelManager.Hint : "";
+            UIFactory.FitHeight(UIFactory.PanelText(t, "Objective", objective, UITheme.SizeBody, 40, UITheme.Text, TextAnchor.MiddleLeft), width - 72);
+            if (string.IsNullOrEmpty(hint)) return;
+            UIFactory.Header(t, "Pista");
+            UIFactory.FitHeight(UIFactory.PanelText(t, "Hint", hint, UITheme.SizeSmall, 36, UITheme.TextSecondary, TextAnchor.MiddleLeft), width - 72);
+        }
+
         void BuildMainPanel(Transform canvas)
         {
-            var panel = Panel(canvas, "Main").transform;
-            UIFactory.Button(panel, "Reanudar", Resume);
-            UIFactory.Button(panel, "Controles", () => ShowPanel("Controls"));
-            UIFactory.Button(panel, "Configuración", () => ShowPanel("Settings"));
-            UIFactory.Button(panel, "Reiniciar sección", RequestRestart);
-            UIFactory.Button(panel, "Volver al menú", RequestExitToMenu);
+            var panel = Panel(canvas, "Main", "Opciones", 600).transform;
+            UIFactory.Button(panel, "Reanudar", Resume, 80, "Volver a la sección");
+            UIFactory.Button(panel, "Controles", () => ShowPanel("Controls"), 80, "Teclado y mouse");
+            UIFactory.Button(panel, "Configuración", () => ShowPanel("Settings"), 80, "Sensibilidad y cámara");
+            UIFactory.Button(panel, "Reiniciar sección", RequestRestart, 80, "Empezar desde el principio");
+            UIFactory.Button(panel, "Volver al menú", RequestExitToMenu, 80, "Las secciones completadas se conservan");
         }
 
         void BuildControlsPanel(Transform canvas)
         {
-            var panel = Panel(canvas, "Controls", 900).transform;
-            UIFactory.PanelText(panel, "List", FullControls, 26, 330, Color.white, TextAnchor.UpperLeft);
-            if (levelManager != null && !string.IsNullOrEmpty(levelManager.Hint))
-                UIFactory.PanelText(panel, "Hint", $"<i>Pista: {levelManager.Hint}</i>", 24, 70, UIFactory.Amber, TextAnchor.UpperLeft);
-            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"));
+            var panel = Panel(canvas, "Controls", "Controles", 860).transform;
+            var table = new GameObject("Table", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
+            table.transform.SetParent(panel, false);
+            var layout = table.GetComponent<VerticalLayoutGroup>();
+            layout.spacing = 4;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+            const float rowHeight = 44f;
+            foreach (var (keys, action) in FullControls)
+            {
+                var row = UIFactory.Row(table.transform, "Row " + action, rowHeight, 0f);
+                var keyCell = UIFactory.Row(row, "Keys", rowHeight, 8f);
+                keyCell.sizeDelta = new Vector2(KeyColumn, rowHeight);
+                foreach (string key in keys) UIFactory.KeyChip(keyCell, key);
+                UIFactory.Label(row, "Action", action, UITheme.SizeSmall, TextAnchor.MiddleLeft, new Vector2(0, 0.5f), Vector2.zero,
+                    new Vector2(860 - 72 - KeyColumn, rowHeight), UITheme.Text).textWrappingMode = TextWrappingModes.NoWrap;
+            }
+            float tableHeight = FullControls.Length * rowHeight + (FullControls.Length - 1) * layout.spacing;
+            ((RectTransform)table.transform).sizeDelta = new Vector2(0, tableHeight);
+            table.GetComponent<LayoutElement>().preferredHeight = tableHeight;
+            UIFactory.Spacer(panel, 2);
+            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"), 64);
         }
 
         void BuildSettingsPanel(Transform canvas)
         {
-            var panel = Panel(canvas, "Settings").transform;
-            sensitivityValue = UIFactory.PanelText(panel, "SensitivityLabel", "", 28, 44, Color.white);
+            var panel = Panel(canvas, "Settings", "Configuración", 600).transform;
+            var row = UIFactory.Row(panel, "SensitivityRow", 40, 0f);
+            var label = UIFactory.Label(row, "Label", "Sensibilidad del mouse", UITheme.SizeBody, TextAnchor.MiddleLeft, new Vector2(0, 0.5f), Vector2.zero, new Vector2(400, 40), UITheme.Text);
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            sensitivityValue = UIFactory.Label(row, "Value", "", UITheme.SizeBody, TextAnchor.MiddleRight, new Vector2(0, 0.5f), Vector2.zero, new Vector2(128, 40), UITheme.Cyan, FontStyle.Bold);
             sensitivitySlider = UIFactory.Slider(panel, "Sensitivity", GameSettings.MinSensitivity, GameSettings.MaxSensitivity,
                 GameSettings.MouseSensitivity, SetSensitivity);
+            UIFactory.PanelText(panel, "SensitivityNote", "Se aplica a la cámara en todas las secciones.", UITheme.SizeCaption, 30, UITheme.TextSecondary, TextAnchor.MiddleLeft);
+            UIFactory.Spacer(panel, 4);
             invertToggle = UIFactory.Toggle(panel, "Invertir eje Y de la cámara", GameSettings.InvertY, SetInvertY);
-            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"));
+            UIFactory.Spacer(panel, 4);
+            UIFactory.Button(panel, "Volver", () => ShowPanel("Main"), 64);
         }
 
         void BuildConfirmPanel(Transform canvas)
         {
-            var panel = Panel(canvas, "Confirm", 760).transform;
-            confirmMessage = UIFactory.PanelText(panel, "Message", "", 28, 150, Color.white);
-            UIFactory.Button(panel, "Cancelar", CancelPending);
-            UIFactory.Button(panel, "Confirmar", ConfirmPending);
+            var panel = Panel(canvas, "Confirm", "Atención", 680);
+            // Contorno ámbar: la acción descarta el avance de la sección.
+            panel.transform.Find("Frame").GetComponent<Image>().color = new Color(UITheme.Amber.r, UITheme.Amber.g, UITheme.Amber.b, 0.6f);
+            var t = panel.transform;
+            confirmTitle = UIFactory.PanelText(t, "Title", "", UITheme.SizeHeading, 48, UITheme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            confirmDetail = UIFactory.PanelText(t, "Detail", "", UITheme.SizeBody, 40, UITheme.TextSecondary, TextAnchor.MiddleLeft);
+            UIFactory.Spacer(t, 4);
+            UIFactory.Button(t, "Cancelar", CancelPending);
+            UIFactory.Button(t, "Confirmar", ConfirmPending);
+        }
+
+        void BuildHints(Transform canvas)
+        {
+            var hints = UIFactory.Row(canvas, "Hints", 40f, 30f);
+            hints.GetComponent<LayoutElement>().ignoreLayout = true;
+            UIFactory.KeyHint(hints, new[] { "Flechas" }, "Navegar", UITheme.SizeCaption, 110);
+            UIFactory.KeyHint(hints, new[] { "Enter" }, "Elegir", UITheme.SizeCaption, 80);
+            UIFactory.KeyHint(hints, new[] { "Esc" }, "Volver / reanudar", UITheme.SizeCaption, 200);
+            UIFactory.KeyHint(hints, new[] { "Retroceso" }, "Reiniciar al instante", UITheme.SizeCaption, 240);
+            UIFactory.Place(hints, new Vector2(0, 0), new Vector2(120, 34), new Vector2(1100, 40));
         }
 
         void RefreshSettings()
         {
             float sensitivity = GameSettings.MouseSensitivity;
             float percent = sensitivity / GameSettings.DefaultSensitivity * 100f;
-            sensitivityValue.text = $"Sensibilidad del mouse: {percent:F0} %";
+            sensitivityValue.text = $"{percent:F0} %";
             sensitivitySlider.SetValueWithoutNotify(sensitivity);
             invertToggle.SetIsOnWithoutNotify(GameSettings.InvertY);
         }
