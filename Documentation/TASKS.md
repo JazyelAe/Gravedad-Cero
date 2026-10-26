@@ -27,6 +27,33 @@ Estados:
 | P2.1 | Menú de pausa (`PauseController`, `PauseMenuUI`): Reanudar, Controles, Configuración, Reiniciar y Volver al menú con confirmación | `9fe0baf`, `43929cf` | Sí | Sí: 26 comprobaciones en Play Mode, ver abajo | **Pendiente** |
 | P2.2 | Configuración de cámara (`GameSettings`): sensibilidad del mouse e invertir Y, guardadas en PlayerPrefs | `9fe0baf` | Sí | Sí: incluida en la prueba de pausa | **Pendiente** |
 | P2.3 | HUD: tarjeta de introducción que se desvanece, objetivo compacto, controles movidos a la pausa | `70d27f2` | Sí | Sí: 5 comprobaciones (aparición, ocultar al moverse, ocultar a los 8 s) | **Pendiente** |
+| R1.1 | Identidad visual Helios-7: TextMeshPro, fuentes Orbitron y Exo 2 (OFL), `UITheme`, `UIFactory`, `UIButtonFX`, `UIReveal` | `ee392bd`, `b68b374` | Sí | Sí: capturas a 4 resoluciones sin textos cortados | **Pendiente** |
+| R1.2 | Transiciones con fundido (`SceneTransition`) y protección contra cargas dobles | `b68b374` | Sí | Sí: una sola carga con clic y Enter, y desde la pausa | **Pendiente** |
+| R1.3 | Menú principal rediseñado: fondo espacial, tarjetas de sección, ficha de personaje, confirmación de Nueva partida | `bb99458` | Sí | Sí: regresión y capturas | **Pendiente** |
+| R1.4 | HUD, pausa, controles, configuración, confirmación y victoria con el estilo Helios-7; botones de victoria con mouse y teclado | Etapa B | Sí | Sí: 19 comprobaciones nuevas y capturas | **Pendiente** |
+| T.2 | Capturas de interfaz con revisión automática de textos (`Tests/Editor/UIScreenshotRunner.cs`) | `f5d15b4` | Sí | No aplica | No aplica |
+
+## Rediseño visual, fase 1 (26-10-2026)
+
+**Regresión: 114 de 114 comprobaciones superadas**, con la consola sin errores ni advertencias. Hay 19 nuevas en el bloque Victoria, que comprueban que:
+- se ve la pantalla de victoria con el cursor libre y Continuar resaltado;
+- las flechas cambian la opción resaltada;
+- Enter en Continuar carga la siguiente sección una sola vez;
+- un clic en Repetir y Enter en el mismo instante producen una sola carga;
+- pasar el mouse por un botón lo resalta y Enter lo pulsa;
+- Nueva partida con progreso pide confirmación y cancelar conserva el progreso;
+- Retroceso desde la pausa recarga una sola vez, sin pausa ni tiempo congelado, aunque se pulse Esc o se pida otro reinicio durante el fundido;
+- todos los textos del menú, el HUD, la pausa y la victoria tienen sus caracteres en su fuente, sin depender de la de respaldo.
+
+**Capturas:** las 13 pantallas a 1280×720, 1920×1080, 2560×1080 y 1024×768, sin textos a revisar ni mensajes de consola. Se revisaron a ojo.
+
+El clic y el paso del mouse se simulan con eventos de la interfaz, no con un mouse real.
+
+**Pendiente de prueba manual:**
+- clic real con el mouse en los botones de victoria, pausa y menú;
+- aspecto de las animaciones y del fundido entre escenas;
+- bloqueo real del cursor al reanudar y al empezar una sección tras la victoria;
+- legibilidad en un monitor real a cada resolución.
 
 ## Regresión con la Prioridad 2 (25-10-2026)
 

@@ -42,12 +42,27 @@ El progreso y la skin se guardan solos. Las soluciones están en [`Documentation
 | Clic izquierdo | Anclar o soltar la caja que está bajo la mira, a 8 m como máximo |
 | E | Usar interruptores |
 | Retroceso (Backspace) | Reiniciar la sección al instante, sin confirmación |
-| Enter | Tras completar una sección, pasar a la siguiente |
-| Esc | Abrir o cerrar la pausa. En la pantalla de victoria, volver al menú principal |
+| Enter | En los menús y en la pantalla de victoria, pulsar la opción resaltada |
+| Flechas | Moverse entre las opciones de los menús |
+| Esc | Abrir o cerrar la pausa, o volver atrás en un menú. En la pantalla de victoria, volver al menú principal |
 
-**Menú de pausa:** Reanudar, Controles (lista completa y pista de la sección), Configuración (sensibilidad del mouse e invertir el eje Y, que se guardan automáticamente), Reiniciar sección y Volver al menú. Las dos últimas piden confirmación; al volver al menú se conservan las secciones completadas.
+**Menú de pausa:** Reanudar, Controles (tabla de teclas), Configuración (sensibilidad del mouse e invertir el eje Y, que se guardan automáticamente), Reiniciar sección y Volver al menú. Las dos últimas piden confirmación; al volver al menú se conservan las secciones completadas.
+
+La pausa muestra también el objetivo y la pista de la sección.
 
 Al empezar cada sección aparece una tarjeta con el nombre, el objetivo, la pista y los controles esenciales. Se desvanece cuando Kai empieza a moverse o a los 8 segundos.
+
+**Pantalla de victoria:** botones Continuar, Repetir sección y Menú principal, que se pueden pulsar con el mouse o elegir con flechas y Enter. Retroceso repite la sección y Esc vuelve al menú.
+
+## Interfaz
+
+Todas las pantallas comparten la identidad visual **Helios-7**, construida por código en `Assets/GravedadCero/Scripts/UI/`:
+- `UITheme`: paleta, tamaños de texto, fuentes y sprites generados (paneles con esquinas recortadas, iconos);
+- `UIFactory`: paneles, botones, deslizadores, casillas y recuadros de tecla;
+- `UIButtonFX`: el foco es el mismo con teclado y mouse;
+- `SceneTransition`: fundido entre escenas que impide cargas dobles.
+
+Los textos usan TextMeshPro, con Orbitron para los títulos y Exo 2 para el resto (licencia SIL OFL, ver créditos).
 
 ## Escenas
 
@@ -71,6 +86,8 @@ Las pruebas de regresión recorren en Play Mode el menú, las tres secciones y `
   ```
 
 El resultado queda en `Logs/RegressionReport.txt`. Las pruebas simulan al jugador por código, sin teclado ni mouse reales, y restauran el progreso guardado al terminar.
+
+**Capturas de interfaz:** menú **Gravedad Cero → Capturas de interfaz**, o `-executeMethod GravedadCero.Tests.UIScreenshotRunner.RunFromCommandLine`, sin `-nographics`. Captura el menú, el HUD, la pausa y la victoria a 1280×720, 1920×1080, 2560×1080 y 1024×768 en `Logs/UIScreens/`. El informe `report.txt` señala los textos que no caben en su recuadro o se salen de la pantalla.
 
 ## Generar el ejecutable
 
