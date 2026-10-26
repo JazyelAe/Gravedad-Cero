@@ -10,9 +10,11 @@ namespace GravedadCero.Player
     /// <summary>
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
     /// GravityCamera, Q/R/F para GravityController, E para PlayerInteractor, clic izquierdo
-    /// para GravitationalTool, Retroceso para reiniciar, Esc para volver al menú y Enter para
-    /// continuar tras completar la sección. Es el único script del jugador que conoce el
-    /// Input System. Las referencias de herramienta y nivel son opcionales (Test_Gravity no las usa).
+    /// para GravitationalTool, Retroceso para reiniciar, Esc para la pausa (o para volver al
+    /// menú tras completar la sección) y Enter para continuar. Es el único script del jugador
+    /// que conoce el Input System. Mientras el juego está en pausa no envía ninguna orden de
+    /// juego: timeScale no detiene el Input System. Las referencias de herramienta, nivel y
+    /// pausa son opcionales (Test_Gravity no las usa).
     /// </summary>
     public class PlayerInputHandler : MonoBehaviour
     {
@@ -23,6 +25,7 @@ namespace GravedadCero.Player
         [SerializeField] PlayerInteractor interactor;
         [SerializeField] GravitationalTool gravitationalTool;
         [SerializeField] LevelManager levelManager;
+        [SerializeField] PauseController pauseController;
 
         InputActionMap playerMap;
         InputAction moveAction;
@@ -71,9 +74,28 @@ namespace GravedadCero.Player
         {
             if (levelManager != null)
             {
-                if (restartAction.WasPressedThisFrame()) { levelManager.Restart(); return; }
-                if (menuAction.WasPressedThisFrame()) { levelManager.ExitToMenu(); return; }
+                // Retroceso reinicia al instante, también desde la pausa.
+                if (restartAction.WasPressedThisFrame())
+                {
+                    if (pauseController != null) pauseController.RestartSection();
+                    else levelManager.Restart();
+                    return;
+                }
+                if (menuAction.WasPressedThisFrame())
+                {
+                    // Con la sección completada, Esc vuelve al menú (el progreso ya está guardado).
+                    if (levelManager.IsCompleted || pauseController == null) levelManager.ExitToMenu();
+                    else pauseController.HandleCancel();
+                    return;
+                }
                 if (levelManager.IsCompleted && confirmAction.WasPressedThisFrame()) { levelManager.Continue(); return; }
+            }
+
+            // En pausa no se mueve a Kai ni la cámara: se suelta cualquier movimiento pendiente.
+            if (pauseController != null && pauseController.IsPaused)
+            {
+                motor.SetMoveInput(Vector3.zero);
+                return;
             }
 
             gravityCamera.AddLookInput(lookAction.ReadValue<Vector2>());

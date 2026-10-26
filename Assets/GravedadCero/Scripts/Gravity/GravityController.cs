@@ -62,7 +62,8 @@ namespace GravedadCero.Gravity
 
         bool TryChange(Vector3 newDirection)
         {
-            if (!CanChange) return false;
+            // Con el juego en pausa (timeScale 0) el Módulo Gravitacional no responde.
+            if (!CanChange || Time.timeScale <= 0f) return false;
             Change(newDirection);
             return true;
         }

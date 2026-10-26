@@ -1,4 +1,5 @@
 using GravedadCero.Gravity;
+using GravedadCero.Save;
 using UnityEngine;
 
 namespace GravedadCero.Cameras
@@ -6,7 +7,8 @@ namespace GravedadCero.Cameras
     /// <summary>
     /// Cámara orbital en tercera persona. Su "arriba" sigue al de la gravedad del objetivo
     /// girando de forma gradual, para que el horizonte acompañe a Kai en paredes y techos.
-    /// Se acerca al jugador cuando una pared se interpone.
+    /// Se acerca al jugador cuando una pared se interpone. La sensibilidad del mouse y la
+    /// inversión del eje Y vienen de GameSettings (menú de pausa → Configuración).
     /// </summary>
     public class GravityCamera : MonoBehaviour
     {
@@ -18,8 +20,6 @@ namespace GravedadCero.Cameras
 
         [Header("Órbita")]
         [SerializeField] float distance = 5f;
-        [Tooltip("Grados por píxel de movimiento del mouse.")]
-        [SerializeField] float sensitivity = 0.12f;
         [SerializeField] float minPitch = -35f;
         [SerializeField] float maxPitch = 70f;
         [Tooltip("Grados por segundo al reorientarse hacia una nueva gravedad.")]
@@ -39,6 +39,9 @@ namespace GravedadCero.Cameras
         float pitch = 15f;
         float currentDistance;
         Vector2 pendingLook;
+
+        /// <summary>Inclinación vertical actual, en grados (positivo = mirando hacia abajo).</summary>
+        public float Pitch => pitch;
 
         public void AddLookInput(Vector2 delta)
         {
@@ -68,11 +71,13 @@ namespace GravedadCero.Cameras
             orbitFrame = GravityController.RotateUpTowards(orbitFrame, CurrentTargetUp(), upAlignSpeed * deltaTime);
 
             // 2) Mouse: giro horizontal alrededor del "arriba" de la cámara e inclinación vertical limitada.
+            float sensitivity = GameSettings.MouseSensitivity;
+            float verticalSign = GameSettings.InvertY ? -1f : 1f;
             orbitFrame *= Quaternion.AngleAxis(pendingLook.x * sensitivity, Vector3.up);
             // Multiplicar cuaterniones frame tras frame acumula error de redondeo; si no se
             // normaliza, las direcciones dejan de medir 1 y Physics.SphereCast lo rechaza.
             orbitFrame = Quaternion.Normalize(orbitFrame);
-            pitch = Mathf.Clamp(pitch - pendingLook.y * sensitivity, minPitch, maxPitch);
+            pitch = Mathf.Clamp(pitch - verticalSign * pendingLook.y * sensitivity, minPitch, maxPitch);
             pendingLook = Vector2.zero;
 
             Quaternion rotation = orbitFrame * Quaternion.Euler(pitch, 0f, 0f);
