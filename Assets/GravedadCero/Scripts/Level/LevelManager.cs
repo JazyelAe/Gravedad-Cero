@@ -45,8 +45,9 @@ namespace GravedadCero.Level
         /// <summary>Recarga la escena actual desde cero.</summary>
         public void Restart()
         {
-            Scene scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(scene.buildIndex >= 0 ? scene.buildIndex : 0);
+            // Por ruta y no por índice: así funciona aunque la escena se haya cargado sin
+            // índice de Build Settings (por ejemplo, desde el editor o las pruebas).
+            SceneManager.LoadScene(SceneManager.GetActiveScene().path);
         }
 
         /// <summary>Carga la siguiente sección o, si no hay, vuelve al menú.</summary>
