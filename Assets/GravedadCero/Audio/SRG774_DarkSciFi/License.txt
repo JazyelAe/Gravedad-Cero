@@ -1,0 +1,13 @@
+Dark Sci-Fi Audio Pack
+Author: SRG774
+Source: https://opengameart.org/content/dark-sci-fi-audio-pack
+Downloaded: 26-10-2026 (ogg.zip, 13,267,628 bytes,
+  SHA-256 c17c40f2b5ff32a51016d121a017cf1a307e0065c7acfcc30c66f05f1d047ce1)
+
+License: Creative Commons Zero (CC0 1.0 Universal)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The pack page states that it is released under the Creative Commons CC0 Public
+Domain Dedication. Attribution is not required; it is credited voluntarily.
+The zip did not include a license file; this file records the license stated
+on the pack page.

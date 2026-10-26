@@ -78,6 +78,62 @@ Los materiales, scripts, escenas y la configuración creados para Gravedad Cero 
   Por eso las flechas, la marca de verificación, los puntos y el candado se dibujan como iconos generados por código (`UITheme`), y los títulos en Orbitron no usan esos signos.
 - **TextMeshPro Essential Resources:** se importaron del paquete `com.unity.ugui` ya instalado (Unity Technologies), sin descargar nada. Incluyen LiberationSans (SIL OFL 1.1), que se usa como fuente de respaldo.
 
+## Audio
+
+### Dark Sci-Fi Audio Pack (música)
+
+| Campo | Valor |
+|---|---|
+| Autor | SRG774 |
+| URL | https://opengameart.org/content/dark-sci-fi-audio-pack |
+| Licencia | Creative Commons Zero (CC0 1.0), http://creativecommons.org/publicdomain/zero/1.0/ |
+| Atribución | No es obligatoria; se acredita de forma voluntaria |
+| Fecha de incorporación | 26-10-2026 |
+| Archivo original | `ogg.zip` (13,267,628 bytes, SHA-256 `c17c40f2b5ff32a51016d121a017cf1a307e0065c7acfcc30c66f05f1d047ce1`) |
+| Ubicación | `Assets/GravedadCero/Audio/SRG774_DarkSciFi/` |
+| Licencia incluida | `License.txt` (el zip no traía ninguna: el archivo registra la licencia que indica la página del pack) |
+
+**Contenido incorporado:** las 8 pistas del pack, sin modificar.
+
+| Pista | Duración | Uso |
+|---|---|---|
+| `title.ogg` | 7:06 | Menú principal |
+| `sector.ogg` | 0:57 | Sección 1-1 |
+| `airy.ogg` | 1:04 | Sección 1-2 |
+| `pulse.ogg` | 1:11 | Sección 1-3 |
+| `transmission.ogg` | 1:34 | Sección 1-4 (en preparación) |
+| `urgent.ogg` | 0:57 | Sección 1-5 (en preparación) |
+| `victory.ogg` | 0:06 | Pantalla de victoria |
+| `hover.ogg` | – | Moverse entre botones |
+
+### Sci-Fi Sounds (versión 1.0, efectos)
+
+| Campo | Valor |
+|---|---|
+| Autor | Kenney (www.kenney.nl) |
+| URL | https://kenney.nl/assets/sci-fi-sounds |
+| Licencia | Creative Commons Zero (CC0 1.0), http://creativecommons.org/publicdomain/zero/1.0/ |
+| Atribución | No es obligatoria; se acredita de forma voluntaria |
+| Fecha de creación del paquete | 11-10-2020 |
+| Fecha de incorporación | 26-10-2026 |
+| Archivo original | `kenney_sci-fi-sounds.zip` (5,875,104 bytes, SHA-256 `119340f351a5098ad814f78719438c0da355a9ce8a4c8a3af6a8d48aa3d49e04`) |
+| Ubicación | `Assets/GravedadCero/Audio/Kenney_SciFiSounds/` |
+| Licencia incluida | `Assets/GravedadCero/Audio/Kenney_SciFiSounds/License.txt` (original del zip) |
+
+**Contenido incorporado:** 9 de los 70 sonidos, sin modificar. Los demás no se incluyeron porque no se usan.
+
+| Sonido | Uso |
+|---|---|
+| `forceField_000` | Cambio de gravedad |
+| `laserRetro_000` / `laserSmall_000` | Anclar / soltar caja |
+| `doorOpen_000` / `doorClose_000` | Compuertas |
+| `impactMetal_000` | Placa de presión |
+| `laserSmall_003` | Interruptor |
+| `laserSmall_001` | Pulsar un botón de la interfaz |
+| `lowFrequency_explosion_000` | Reaparecer tras caer o tocar una zona de peligro |
+
+La asignación de cada pista y sonido está en `Assets/GravedadCero/Audio/Resources/AudioCatalog.asset`.
+
 ## Pendientes
 
 Ningún otro recurso de terceros está incluido por ahora.
