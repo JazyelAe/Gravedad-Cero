@@ -53,8 +53,24 @@ El progreso y la skin se guardan solos. Las soluciones están en [`Documentation
 | `Level_01_DockingBay` | Sección 1-1, Muelle de acoplamiento: caja, gravedad y anclaje |
 | `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: caminar por paredes y techo |
 | `Level_01_3_CargoLock` | Sección 1-3, Esclusa de carga: dos cajas y dos placas |
-| `Test_Gravity` | Escena de pruebas de movimiento, gravedad, puertas e interruptores |
-| `Showcase_Kenney` | Catálogo de las piezas del Space Station Kit |
+| `Test_Gravity` | Escena de pruebas de movimiento, gravedad, puertas e interruptores (fuera del build) |
+| `Showcase_Kenney` | Catálogo de las piezas del Space Station Kit (fuera del build) |
+
+## Pruebas automáticas
+
+Las pruebas de regresión recorren en Play Mode el menú, las tres secciones y `Test_Gravity`. Están en `Assets/GravedadCero/Tests/Editor/RegressionRunner.cs`, que no se incluye en el build.
+
+- **Desde el editor:** menú **Gravedad Cero → Ejecutar pruebas de regresión**.
+- **Desde la línea de comandos**, con el editor cerrado:
+  ```bash
+  "C:\Program Files\Unity\Hub\Editor\6000.6.2f1\Editor\Unity.exe" -batchmode -projectPath . -executeMethod GravedadCero.Tests.RegressionRunner.RunFromCommandLine -logFile Logs/regression.log
+  ```
+
+El resultado queda en `Logs/RegressionReport.txt`. Las pruebas simulan al jugador por código, sin teclado ni mouse reales, y restauran el progreso guardado al terminar.
+
+## Generar el ejecutable
+
+**File → Build Profiles → Windows → Build**, con la salida en `Builds/Windows`. Las escenas activas son `MainMenu` y las tres secciones. Para compartir el juego, comprime la carpeta completa sin `GravedadCero_BackUpThisFolder_ButDontShipItWithYourGame`. `Builds/` está fuera de Git.
 
 ## Estado de desarrollo
 
@@ -62,4 +78,4 @@ Prototipo jugable del Sector 1, con tres secciones, menú principal, guardado de
 
 ## Licencias y créditos
 
-Los assets de terceros y sus licencias se registran en [`Documentation/ASSET_CREDITS.md`](Documentation/ASSET_CREDITS.md). Por ahora el proyecto incluye el Space Station Kit de Kenney (CC0).
+Los assets de terceros y sus licencias se registran en [`Documentation/ASSET_CREDITS.md`](Documentation/ASSET_CREDITS.md). Por ahora el proyecto incluye dos paquetes de Kenney (CC0): Space Station Kit y Animated Characters Protagonists.

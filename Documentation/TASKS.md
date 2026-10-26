@@ -21,7 +21,30 @@ Estados:
 | B.1 | Build de Windows 64 bits (`Builds/Windows/GravedadCero.exe`, no versionado) | `fe9b80d` | Sí | Prueba de humo: el .exe se ejecutó 20 s sin errores | Sí |
 | M.1 | Menú principal, progreso con `GameProgress` (PlayerPrefs), flujo Enter/Esc entre secciones | `b4fc5fd` | Sí | Sí: 10 comprobaciones en Play Mode | **Pendiente** |
 | S.1 | Cinco skins para Kai (`SkinCatalog`, `KaiSkinApplier`) elegibles desde el menú | `283d40b` | Sí | Sí: cubierta por la prueba del menú | **Pendiente** |
-| N1.2 | Secciones 1-2 (pozo, `HazardZone`, interruptor en el techo) y 1-3 (dos placas, `ActivationGate`) | `feat: add Sector 1 sections 1-2 and 1-3` | Sí | Sí: 16 + 18 comprobaciones en Play Mode | **Pendiente** |
+| N1.2 | Secciones 1-2 (pozo, `HazardZone`, interruptor en el techo) y 1-3 (dos placas, `ActivationGate`) | `d0fe3b2` | Sí | Sí: 16 + 18 comprobaciones en Play Mode | **Pendiente** |
+| T.1 | Ejecutor permanente de pruebas de regresión (`Tests/Editor/RegressionRunner.cs`, solo editor) | `207987f` | Sí | Sí: 66/66 (25-10-2026) | No aplica |
+| B.2 | Build Beta de Windows: menú y 3 secciones; `SampleScene` y `Test_Gravity` fuera del build; `companyName` = JazyelAe | `chore: exclude test scenes from build and set company name` | Sí | Prueba de humo del .exe y del ZIP descomprimido | **Pendiente** |
+
+## Regresión completa (25-10-2026, `RegressionRunner`)
+
+**66 de 66 comprobaciones superadas** en una sola sesión de Play Mode, con la consola sin errores ni advertencias:
+
+| Bloque | Comprobaciones |
+|---|---|
+| Menú | 9 |
+| Sección 1-1 | 20 |
+| Sección 1-2 | 14 |
+| Sección 1-3 | 17 |
+| Test_Gravity | 5 |
+| Consola | 1 |
+
+Se ejecuta desde el editor con **Gravedad Cero → Ejecutar pruebas de regresión**, o por línea de comandos (ver `README.md`). El informe se guarda en `Logs/RegressionReport.txt`.
+
+**Build Beta (25-10-2026):**
+- `Builds/Windows/GravedadCero.exe`, 107.6 MB, con 4 escenas: `MainMenu` y las tres secciones. 0 errores y 3 advertencias conocidas (colliders de malla sin pre-bake y dos shaders de depuración de URP descartados).
+- Prueba de humo sin ventana: 25 s sin errores en el log. La build anterior se conservó en `Builds/Windows_anterior_solo_1-1`.
+- ZIP: `Builds/GravedadCero_Beta_2026-10-25.zip`, 39.2 MB, sin la carpeta de depuración. Se descomprimió en otra carpeta y se ejecutó 20 s sin errores.
+- **Pendiente de prueba manual:** la interfaz, los gráficos, los controles reales y el guardado entre sesiones.
 
 ## Pruebas del menú y de las secciones 1-2 y 1-3 (25-10-2026)
 
