@@ -32,6 +32,9 @@ Estados:
 | R1.3 | Menú principal rediseñado: fondo espacial, tarjetas de sección, ficha de personaje, confirmación de Nueva partida | `bb99458` | Sí | Sí: regresión y capturas | **Pendiente** |
 | R1.4 | HUD, pausa, controles, configuración, confirmación y victoria con el estilo Helios-7; botones de victoria con mouse y teclado | Etapa B | Sí | Sí: 19 comprobaciones nuevas y capturas | **Pendiente** |
 | A.1 | Música por escena con fundido cruzado, efectos de sonido por eventos, volumen de música y efectos en la pausa (`GameAudio`, `AudioCatalog`) | Fase 2, etapa de audio | Sí | Sí: 12 comprobaciones, regresión 126/126 | **Pendiente**: escuchar música y efectos |
+| N2.1 | Segunda sala en 1-1 (placa alta), 1-2 (pozo con dos interruptores) y 1-3 (placa en el techo y en el suelo) | Fase 2, etapa de niveles | Sí | Sí: cada sala se resuelve en la regresión | **Pendiente** |
+| N2.2 | Secciones nuevas 1-4 (Anillo de rotación, franjas peligrosas) y 1-5 (Núcleo, gravedad hacia el norte); menú con 5 secciones | Fase 2, etapa de niveles | Sí | Sí: 1-4 y 1-5 resueltas en la regresión | **Pendiente** |
+| N2.3 | Puntos de control (`Checkpoint`), aviso en el HUD; `SignalLatch` y `ActivationGate` con interruptores | Fase 2, etapa de niveles | Sí | Sí: reaparición en cada punto de control | **Pendiente** |
 | T.2 | Capturas de interfaz con revisión automática de textos (`Tests/Editor/UIScreenshotRunner.cs`) | `f5d15b4` | Sí | No aplica | No aplica |
 
 ## Rediseño visual, fase 1 (26-10-2026)

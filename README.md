@@ -71,15 +71,17 @@ Los textos usan TextMeshPro, con Orbitron para los títulos y Exo 2 para el rest
 | Escena | Uso |
 |---|---|
 | `MainMenu` | Menú principal con vista previa de Kai |
-| `Level_01_DockingBay` | Sección 1-1, Muelle de acoplamiento: caja, gravedad y anclaje |
-| `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: caminar por paredes y techo |
-| `Level_01_3_CargoLock` | Sección 1-3, Esclusa de carga: dos cajas y dos placas |
+| `Level_01_DockingBay` | Sección 1-1, Muelle de acoplamiento: caja, gravedad y anclaje, en dos salas |
+| `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: caminar por paredes y techo, en dos pozos |
+| `Level_01_3_CargoLock` | Sección 1-3, Esclusa de carga: dos esclusas, placas en paredes, techo y suelo |
+| `Level_01_4_RotationRing` | Sección 1-4, Anillo de rotación: franjas peligrosas en suelo, pared y techo |
+| `Level_01_5_Core` | Sección 1-5, Núcleo del reactor: la gravedad también apunta al norte |
 | `Test_Gravity` | Escena de pruebas de movimiento, gravedad, puertas e interruptores (fuera del build) |
 | `Showcase_Kenney` | Catálogo de las piezas del Space Station Kit (fuera del build) |
 
 ## Pruebas automáticas
 
-Las pruebas de regresión recorren en Play Mode el menú, las tres secciones y `Test_Gravity`. Están en `Assets/GravedadCero/Tests/Editor/RegressionRunner.cs`, que no se incluye en el build.
+Las pruebas de regresión recorren en Play Mode el menú, las cinco secciones (resolviendo cada sala), la pausa, la victoria, el audio y `Test_Gravity`. Están en `Assets/GravedadCero/Tests/Editor/RegressionRunner.cs`, que no se incluye en el build.
 
 - **Desde el editor:** menú **Gravedad Cero → Ejecutar pruebas de regresión**.
 - **Desde la línea de comandos**, con el editor cerrado:
@@ -93,11 +95,11 @@ El resultado queda en `Logs/RegressionReport.txt`. Las pruebas simulan al jugado
 
 ## Generar el ejecutable
 
-**File → Build Profiles → Windows → Build**, con la salida en `Builds/Windows`. Las escenas activas son `MainMenu` y las tres secciones. Para compartir el juego, comprime la carpeta completa sin `GravedadCero_BackUpThisFolder_ButDontShipItWithYourGame`. `Builds/` está fuera de Git.
+**File → Build Profiles → Windows → Build**, con la salida en `Builds/Windows`. Las escenas activas son `MainMenu` y las cinco secciones. Para compartir el juego, comprime la carpeta completa sin `GravedadCero_BackUpThisFolder_ButDontShipItWithYourGame`. `Builds/` está fuera de Git.
 
 ## Estado de desarrollo
 
-Prototipo jugable del Sector 1, con tres secciones, menú principal, guardado de progreso y cinco skins. El estado de cada tarea, separado entre implementado, probado automáticamente y pendiente de prueba manual, está en [`Documentation/TASKS.md`](Documentation/TASKS.md).
+Prototipo jugable del Sector 1, con cinco secciones (tres de ellas con dos salas), puntos de control, música y efectos, menú principal, guardado de progreso y cinco skins. El estado de cada tarea, separado entre implementado, probado automáticamente y pendiente de prueba manual, está en [`Documentation/TASKS.md`](Documentation/TASKS.md).
 
 ## Licencias y créditos
 

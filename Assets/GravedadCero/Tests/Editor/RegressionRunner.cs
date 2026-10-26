@@ -150,6 +150,8 @@ namespace GravedadCero.Tests
             yield return DockingBaySuite();
             yield return MaintenanceShaftSuite();
             yield return CargoLockSuite();
+            yield return RotationRingSuite();
+            yield return CoreSuite();
             yield return PauseAndHudSuite();
             yield return VictoryAndTransitionSuite();
             yield return AudioSuite();
@@ -281,6 +283,19 @@ namespace GravedadCero.Tests
                 cam.transform.rotation = Quaternion.LookRotation(away ? camPos - boxCenter : boxCenter - camPos, Up);
             }
 
+            /// <summary>Camina hacia el norte hasta pasar z (por ejemplo, una compuerta).</summary>
+            public IEnumerator WalkPast(float z, float timeout, string checkName)
+            {
+                float start = Time.time;
+                while (Position.z < z && Time.time - start < timeout)
+                {
+                    motor.SetMoveInput(Vector3.forward);
+                    yield return null;
+                }
+                motor.SetMoveInput(Vector3.zero);
+                Check(checkName, Position.z >= z, $"pos={Position}");
+            }
+
             public IEnumerator WalkUntilCompleted(Vector3 direction, float timeout, string checkName)
             {
                 float start = Time.time;
@@ -310,7 +325,7 @@ namespace GravedadCero.Tests
             }
             yield return 0.5f;
             Check("menú presente con EventSystem", UnityEngine.EventSystems.EventSystem.current != null);
-            Check("tres secciones configuradas", menu.Sections.Count == 3);
+            Check("cinco secciones configuradas", menu.Sections.Count == 5);
 
             GameProgress.ResetProgress();
             var preview = Object.FindAnyObjectByType<KaiSkinApplier>();
@@ -360,10 +375,10 @@ namespace GravedadCero.Tests
             suite = "1-1";
             yield return LoadScene("Level_01_DockingBay");
             var p = Player.Find();
-            var box = Object.FindAnyObjectByType<AnchorableBody>();
+            var box = Named<AnchorableBody>("CargoBox");
             var boxBody = box.GetComponent<Rigidbody>();
-            var plate = Object.FindAnyObjectByType<PressurePlate>();
-            var door = Object.FindAnyObjectByType<DoorController>();
+            var plate = Named<PressurePlate>("PressurePlate_EastWall");
+            var door = Named<DoorController>("Door_1");
             Check("referencias de escena", p != null && p.tool && box && plate && door && p.gravity && p.level && p.cam);
             Check("Kai con Animator humanoide y PlayerAnimator", p.animator && p.animator.isHuman && p.go.GetComponent<PlayerAnimator>());
             yield return 1.5f;
@@ -399,23 +414,56 @@ namespace GravedadCero.Tests
             p.Teleport(new Vector3(0f, 0.05f, 18f), Quaternion.identity);
             float maxSpeed = 0f;
             float walkStart = Time.time;
-            while (!p.level.IsCompleted && Time.time - walkStart < 8f)
+            while (p.Position.z < 29f && Time.time - walkStart < 8f)
             {
                 p.motor.SetMoveInput(Vector3.forward);
                 maxSpeed = Mathf.Max(maxSpeed, p.animator.GetFloat("Speed"));
                 yield return null;
             }
             p.motor.SetMoveInput(Vector3.zero);
-            Check("Kai cruza la compuerta y completa 1-1", p.level.IsCompleted, $"pos={p.Position}");
+            Check("Kai cruza la primera compuerta", p.Position.z >= 29f, $"pos={p.Position}");
             Check("el Animator recibe la velocidad de carrera", maxSpeed > 4f, $"max={maxSpeed:F2}");
-            Check("completar 1-1 desbloquea 1-2", GameProgress.UnlockedSection >= 1);
-            var victoryPause = Object.FindAnyObjectByType<PauseController>();
-            victoryPause.HandleCancel();
-            Check("en la pantalla de victoria no se abre la pausa", !victoryPause.IsPaused && Time.timeScale == 1f);
+            Check("al entrar en la segunda sala se guarda el punto de control", Named<Checkpoint>("Checkpoint_Room2").IsReached);
+            Check("1-1 aún no está completada", !p.level.IsCompleted);
 
             box.Release();
             yield return 2.5f;
             Check("al soltarla, la caja cae y la compuerta se cierra", box.transform.position.y < 1.8f && !plate.IsPressed && !door.IsActivated);
+
+            // Segunda sala: la placa está alta en la pared este; la caja tiene que subir antes al techo.
+            var door2 = Named<DoorController>("Door_2");
+            var plate2 = Named<PressurePlate>("PressurePlate_EastHigh");
+            var box2 = Named<AnchorableBody>("CargoBox_2");
+            p.Teleport(new Vector3(0f, 0.05f, 31f), Quaternion.identity);
+            yield return 1f;
+            Check("segunda sala: placa alta libre y compuerta 2 cerrada", !plate2.IsPressed && !door2.IsActivated);
+            SetGravity(p, Vector3.right);
+            yield return 2.5f;
+            Check("desde el suelo, la caja llega a la pared este demasiado baja", box2.transform.position.x > 3.8f && !plate2.IsPressed, $"box2={box2.transform.position}");
+            p.gravity.ResetGravity();
+            yield return 2.5f;
+            p.Teleport(new Vector3(0f, 0.05f, 31f), Quaternion.identity);
+            Check("F lleva la caja al techo", p.gravity.Flip() && p.gravity.Direction == Vector3.up);
+            yield return 2.5f;
+            Check("la caja queda en el techo", box2.transform.position.y > 6.3f, $"box2={box2.transform.position}");
+            SetGravity(p, Vector3.right);
+            yield return 2.5f;
+            Check("desde el techo, la caja llega a la placa alta y abre la compuerta 2", plate2.IsPressed && door2.IsActivated, $"box2={box2.transform.position}");
+            p.Teleport(new Vector3(5.3f, 5f, 33.5f), Quaternion.LookRotation(Vector3.forward, Vector3.left));
+            yield return 0.6f;
+            p.AimAt(box2);
+            Check("clic ancla la caja de la segunda sala", p.tool.ToggleAnchor() && box2.IsAnchored);
+            p.gravityCamera.enabled = true;
+            p.gravity.ResetGravity();
+            yield return 2.5f;
+            Check("con la caja anclada la compuerta 2 sigue abierta", plate2.IsPressed && door2.IsActivated);
+
+            p.Teleport(new Vector3(0f, 0.05f, 45f), Quaternion.identity);
+            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai cruza la compuerta 2 y completa 1-1");
+            Check("completar 1-1 desbloquea 1-2", GameProgress.UnlockedSection >= 1);
+            var victoryPause = Object.FindAnyObjectByType<PauseController>();
+            victoryPause.HandleCancel();
+            Check("en la pantalla de victoria no se abre la pausa", !victoryPause.IsPaused && Time.timeScale == 1f);
         }
 
         // =====================================================================
@@ -427,7 +475,7 @@ namespace GravedadCero.Tests
             suite = "1-2";
             yield return LoadScene("Level_01_2_MaintenanceShaft");
             var p = Player.Find();
-            var door = Object.FindAnyObjectByType<DoorController>();
+            var door = Named<DoorController>("Door_1");
             yield return 1.5f;
             Check("Kai en el suelo y compuerta cerrada al inicio", p.motor.IsGrounded && !door.IsActivated);
 
@@ -465,7 +513,38 @@ namespace GravedadCero.Tests
             p.gravity.Flip();
             yield return 2.5f;
             p.Teleport(new Vector3(0, 0.05f, 38f), Quaternion.identity);
-            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai cruza la compuerta y completa 1-2");
+            yield return p.WalkPast(44f, 8f, "Kai cruza la primera compuerta");
+            Check("en la repisa del segundo pozo se guarda el punto de control", Named<Checkpoint>("Checkpoint_Ledge").IsReached);
+
+            // Segundo pozo: un interruptor en la pared este y otro en el techo.
+            var door2 = Named<DoorController>("Door_2");
+            var latchWall = Named<SignalLatch>("Latch_EastWall");
+            var latchCeiling = Named<SignalLatch>("Latch_Ceiling");
+            p.Teleport(new Vector3(0, 0.05f, 56f), Quaternion.identity);
+            t = Time.time;
+            while (!(p.Position.z < 47f && p.Position.y > -1f && Time.time - t > 0.3f) && Time.time - t < 5f) yield return null;
+            Check("caer al segundo pozo devuelve a Kai al punto de control", p.Position.z > 42.5f && p.Position.z < 47f && p.Position.y > -1f, $"pos={p.Position}");
+            yield return 1f;
+            Check("R lleva la gravedad a la pared este", p.gravity.RotateRight(p.go.transform) && p.gravity.Direction == Vector3.right);
+            yield return 2.5f;
+            p.Teleport(new Vector3(5.3f, 2.5f, 50.6f), Quaternion.LookRotation(Vector3.forward, Vector3.left));
+            yield return 0.6f;
+            Check("el interruptor de la pared este queda al alcance", p.interactor.Current != null);
+            p.interactor.TryInteract();
+            yield return 0.3f;
+            Check("con un solo interruptor la compuerta 2 sigue cerrada", latchWall.IsActivated && !door2.IsActivated);
+            SetGravity(p, Vector3.up);
+            yield return 2.5f;
+            p.Teleport(new Vector3(0, 7.95f, 60.6f), Quaternion.LookRotation(Vector3.forward, Vector3.down));
+            yield return 0.6f;
+            Check("el interruptor del techo del segundo pozo queda al alcance", p.interactor.Current != null);
+            p.interactor.TryInteract();
+            yield return 0.3f;
+            Check("con los dos interruptores la compuerta 2 se abre", latchCeiling.IsActivated && door2.IsActivated);
+            p.gravity.Flip();
+            yield return 2.5f;
+            p.Teleport(new Vector3(0, 0.05f, 74f), Quaternion.identity);
+            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai cruza la compuerta 2 y completa 1-2");
             Check("completar 1-2 desbloquea 1-3", GameProgress.UnlockedSection >= 2);
 
             p.level.Continue();
@@ -484,14 +563,12 @@ namespace GravedadCero.Tests
             suite = "1-3";
             yield return LoadScene("Level_01_3_CargoLock");
             var p = Player.Find();
-            var door = Object.FindAnyObjectByType<DoorController>();
-            PressurePlate plateA = null, plateB = null;
-            foreach (var plate in Object.FindObjectsByType<PressurePlate>())
-                if (plate.name.Contains("West")) plateA = plate; else plateB = plate;
-            AnchorableBody boxA = null, boxB = null;
-            foreach (var b in Object.FindObjectsByType<AnchorableBody>())
-                if (b.name.EndsWith("A")) boxA = b; else boxB = b;
-            Check("referencias: 2 placas, 2 cajas, compuerta lógica", plateA && plateB && boxA && boxB && Object.FindAnyObjectByType<ActivationGate>());
+            var door = Named<DoorController>("Door_1");
+            var plateA = Named<PressurePlate>("PressurePlate_WestLow");
+            var plateB = Named<PressurePlate>("PressurePlate_EastHigh");
+            var boxA = Named<AnchorableBody>("CargoBox_A");
+            var boxB = Named<AnchorableBody>("CargoBox_B");
+            Check("referencias: 2 placas, 2 cajas, compuerta lógica", plateA && plateB && boxA && boxB && Named<ActivationGate>("ActivationGate"));
             yield return 1.5f;
 
             Check("estado inicial: placas libres y compuerta cerrada", !plateA.IsPressed && !plateB.IsPressed && !door.IsActivated);
@@ -520,15 +597,187 @@ namespace GravedadCero.Tests
             Check("la compuerta sigue abierta", door.IsActivated && plateB.IsPressed);
 
             p.Teleport(new Vector3(0, 0.05f, 21f), Quaternion.identity);
-            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai sale y completa 1-3");
-            Check("completar 1-3 desbloquea el progreso final", GameProgress.UnlockedSection >= 3);
-            Check("1-3 es el final del sector", !p.level.HasNext);
+            yield return p.WalkPast(29f, 8f, "Kai cruza la primera esclusa");
 
+            // Segunda esclusa: una placa en el techo (oeste) y otra en el suelo junto a la pared este.
+            // La gravedad es global: la primera esclusa ya movió estas cajas al oeste.
+            var door2 = Named<DoorController>("Door_2");
+            var plateC = Named<PressurePlate>("PressurePlate_Ceiling");
+            var plateD = Named<PressurePlate>("PressurePlate_EastFloor");
+            var boxC = Named<AnchorableBody>("CargoBox_C");
+            var boxD = Named<AnchorableBody>("CargoBox_D");
+            Check("segunda esclusa: placas libres y compuerta 2 cerrada", !plateC.IsPressed && !plateD.IsPressed && !door2.IsActivated);
+            Check("F sube las cajas al techo", p.gravity.Flip() && p.gravity.Direction == Vector3.up);
+            yield return 2.5f;
+            Check("la caja C presiona la placa del techo", plateC.IsPressed, $"boxC={boxC.transform.position}");
+            Check("con una placa la compuerta 2 sigue cerrada", !plateD.IsPressed && !door2.IsActivated);
+            p.Teleport(new Vector3(0, 7.95f, 30f), Quaternion.LookRotation(Vector3.forward, Vector3.down));
+            yield return 0.6f;
+            p.AimAt(boxC);
+            Check("clic ancla la caja C en el techo", p.tool.ToggleAnchor() && boxC.IsAnchored);
+            Check("anclar la caja C suelta la de la primera esclusa", !boxB.IsAnchored);
+            p.gravityCamera.enabled = true;
+            SetGravity(p, Vector3.right);
+            yield return 2.5f;
+            Check("la caja D va del techo a la pared este", boxD.transform.position.x > 3.8f, $"boxD={boxD.transform.position}");
+            p.gravity.ResetGravity();
+            yield return 3f;
+            Check("la caja D cae sobre la placa del suelo y la compuerta 2 se abre", plateD.IsPressed && plateC.IsPressed && door2.IsActivated, $"boxD={boxD.transform.position}");
+
+            p.Teleport(new Vector3(0, 0.05f, 45f), Quaternion.identity);
+            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai sale y completa 1-3");
+            Check("completar 1-3 desbloquea 1-4", GameProgress.UnlockedSection >= 3);
+
+            p.level.Continue();
+            bool loaded = false;
+            yield return WaitForScene("Level_01_4_RotationRing", 10f, r => loaded = r);
+            Check("Continuar carga la sección 1-4", loaded);
+            yield return 0.5f;
+        }
+
+        // =====================================================================
+        // Sección 1-4: Anillo de rotación
+        // =====================================================================
+
+        static IEnumerator RotationRingSuite()
+        {
+            suite = "1-4";
+            yield return LoadScene("Level_01_4_RotationRing");
+            var p = Player.Find();
+            var door = Named<DoorController>("Door_1");
+            var latchWall = Named<SignalLatch>("Latch_EastWall");
+            var latchCeiling = Named<SignalLatch>("Latch_Ceiling");
+            var cp1 = Named<Checkpoint>("Checkpoint_1");
+            var cp2 = Named<Checkpoint>("Checkpoint_2");
+            Check("referencias: compuerta, 2 interruptores, 2 puntos de control, 3 franjas", door && latchWall && latchCeiling && cp1 && cp2
+                && Object.FindObjectsByType<HazardZone>().Length == 3);
+            Check("1-4 lleva a 1-5", p.level.HasNext && p.level.NextSceneName == "Level_01_5_Core");
+            yield return 1.5f;
+            Check("Kai en el suelo y compuerta cerrada al inicio", p.motor.IsGrounded && !door.IsActivated);
+
+            p.Teleport(new Vector3(0, 0.05f, 9f), Quaternion.identity);
+            float t = Time.time;
+            while (!(p.Position.z < 4f && Time.time - t > 0.3f) && Time.time - t < 5f) yield return null;
+            Check("pisar la franja roja del suelo devuelve a Kai al inicio", p.Position.z < 4f, $"pos={p.Position}");
+            yield return 1f;
+
+            Check("R lleva la gravedad a la pared este", p.gravity.RotateRight(p.go.transform) && p.gravity.Direction == Vector3.right);
+            yield return 2.5f;
+            p.Teleport(new Vector3(5.3f, 2.5f, 11.6f), Quaternion.LookRotation(Vector3.forward, Vector3.left));
+            yield return 0.6f;
+            Check("sobre la franja del suelo, la pared es segura y el interruptor queda al alcance", p.interactor.Current != null && p.Position.z > 6f);
+            p.interactor.TryInteract();
+            yield return 0.3f;
+            Check("con un interruptor la compuerta sigue cerrada", latchWall.IsActivated && !door.IsActivated);
+
+            p.Teleport(new Vector3(5.3f, 4f, 23f), Quaternion.LookRotation(Vector3.forward, Vector3.left));
+            yield return 0.4f;
+            Check("pasar por la pared también guarda el punto de control 1", cp1.IsReached);
+            SetGravity(p, Vector3.up);
+            yield return 2.5f;
+            p.Teleport(new Vector3(0, 7.95f, 30.6f), Quaternion.LookRotation(Vector3.forward, Vector3.down));
+            yield return 0.6f;
+            Check("el interruptor del techo queda al alcance", p.interactor.Current != null);
+            p.interactor.TryInteract();
+            yield return 0.3f;
+            Check("con los dos interruptores la compuerta se abre", latchCeiling.IsActivated && door.IsActivated);
+
+            // La franja de la pared este devuelve al punto de control 1, con la gravedad normal.
+            SetGravity(p, Vector3.right);
+            p.Teleport(new Vector3(5.3f, 4f, 32f), Quaternion.LookRotation(Vector3.forward, Vector3.left));
+            t = Time.time;
+            while (!(p.Position.z < 24f && Time.time - t > 0.3f) && Time.time - t < 5f) yield return null;
+            Check("tocar la franja de la pared devuelve al punto de control 1", Mathf.Abs(p.Position.z - 23f) < 1.5f && p.gravity.Direction == Vector3.down, $"pos={p.Position}");
+            Check("los interruptores siguen activados tras reaparecer", latchWall.IsActivated && latchCeiling.IsActivated && door.IsActivated);
+            yield return 1f;
+
+            p.Teleport(new Vector3(0, 0.05f, 40.5f), Quaternion.identity);
+            yield return 0.4f;
+            Check("punto de control 2 guardado", cp2.IsReached);
+            p.gravity.Flip();
+            yield return 2.5f;
+            p.Teleport(new Vector3(0, 7.95f, 50f), Quaternion.LookRotation(Vector3.forward, Vector3.down));
+            t = Time.time;
+            while (!(p.Position.z < 42f && Time.time - t > 0.3f) && Time.time - t < 5f) yield return null;
+            Check("tocar la franja del techo devuelve al punto de control 2", Mathf.Abs(p.Position.z - 41f) < 1.5f && p.gravity.Direction == Vector3.down, $"pos={p.Position}");
+            yield return 1f;
+
+            yield return p.WalkUntilCompleted(Vector3.forward, 10f, "Kai cruza la compuerta y completa 1-4");
+            Check("completar 1-4 desbloquea 1-5", GameProgress.UnlockedSection >= 4);
+            p.level.Continue();
+            bool loaded = false;
+            yield return WaitForScene("Level_01_5_Core", 10f, r => loaded = r);
+            Check("Continuar carga la sección 1-5", loaded);
+            yield return 0.5f;
+        }
+
+        // =====================================================================
+        // Sección 1-5: Núcleo del reactor
+        // =====================================================================
+
+        static IEnumerator CoreSuite()
+        {
+            suite = "1-5";
+            yield return LoadScene("Level_01_5_Core");
+            var p = Player.Find();
+            var door = Named<DoorController>("Door_1");
+            var latch = Named<SignalLatch>("Latch_Ceiling");
+            var plate = Named<PressurePlate>("PressurePlate_North");
+            var box = Named<AnchorableBody>("CargoBox");
+            Check("referencias: compuerta, interruptor, placa, caja y punto de control", door && latch && plate && box && Named<Checkpoint>("Checkpoint_FarSide"));
+            Check("1-5 es el final del sector", !p.level.HasNext);
+            yield return 1.5f;
+
+            p.Teleport(new Vector3(0, 0.05f, 12f), Quaternion.identity);
+            float t = Time.time;
+            while (!(p.Position.z < 4f && p.Position.y > -1f && Time.time - t > 0.3f) && Time.time - t < 5f) yield return null;
+            Check("caer al pozo del núcleo devuelve a Kai al inicio", p.Position.z < 4f && p.Position.y > -1f, $"pos={p.Position}");
+            yield return 1f;
+
+            Check("F lleva a Kai y la caja al techo", p.gravity.Flip() && p.gravity.Direction == Vector3.up);
+            yield return 2.5f;
+            Check("la caja queda en el techo", box.transform.position.y > 6.3f, $"box={box.transform.position}");
+            p.Teleport(new Vector3(0, 7.95f, 10.6f), Quaternion.LookRotation(Vector3.forward, Vector3.down));
+            yield return 0.6f;
+            Check("el interruptor del techo, sobre el pozo, queda al alcance", p.interactor.Current != null);
+            p.interactor.TryInteract();
+            yield return 0.3f;
+            Check("con el interruptor y sin la placa la compuerta sigue cerrada", latch.IsActivated && !door.IsActivated);
+
+            // Kai, cabeza abajo en el techo, mira al este: su derecha es el norte.
+            p.go.transform.rotation = Quaternion.LookRotation(Vector3.right, Vector3.down);
+            p.body.rotation = p.go.transform.rotation;
+            Check("girando la gravedad mirando a un lado, apunta al norte", p.gravity.RotateRight(p.go.transform) && p.gravity.Direction == Vector3.forward,
+                $"dir={p.gravity.Direction}");
+            yield return 3.5f;
+            Check("la caja vuela sobre el pozo hasta la pared norte", box.transform.position.z > 31f, $"box={box.transform.position}");
+            Check("Kai cruza el pozo y guarda el punto de control", p.Position.z > 30f && Named<Checkpoint>("Checkpoint_FarSide").IsReached, $"pos={p.Position}");
+            p.gravity.ResetGravity();
+            yield return 3f;
+            Check("la caja cae sobre la placa norte y la compuerta se abre", plate.IsPressed && door.IsActivated, $"box={box.transform.position}");
+            Check("Kai aterriza junto a la compuerta", p.motor.IsGrounded && p.Position.z > 28f && p.Position.y < 1f, $"pos={p.Position}");
+
+            p.Teleport(new Vector3(0, 0.05f, 31f), Quaternion.identity);
+            yield return p.WalkUntilCompleted(Vector3.forward, 8f, "Kai sale y completa 1-5");
+            Check("completar 1-5 desbloquea el progreso final", GameProgress.UnlockedSection >= 5);
             p.level.Continue();
             bool loaded = false;
             yield return WaitForScene("MainMenu", 10f, r => loaded = r);
             Check("al final del sector, Continuar vuelve al menú", loaded);
             yield return 0.5f;
+        }
+
+        static T Named<T>(string name) where T : Component =>
+            Object.FindObjectsByType<T>(FindObjectsInactive.Include).FirstOrDefault(c => c.name == name);
+
+        /// <summary>Gira la gravedad hacia una dirección perpendicular a la actual, como haría Q o R.</summary>
+        static void SetGravity(Player p, Vector3 direction)
+        {
+            var reference = new GameObject("GravityReference").transform;
+            reference.rotation = Quaternion.FromToRotation(Vector3.right, direction);
+            bool ok = p.gravity.RotateRight(reference);
+            Object.Destroy(reference.gameObject);
+            if (!ok || p.gravity.Direction != direction) Check($"girar la gravedad hacia {direction}", false, $"actual={p.gravity.Direction}");
         }
 
         // =====================================================================
