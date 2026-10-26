@@ -107,10 +107,47 @@ namespace GravedadCero.Tests
             foreach (var extra in ExtraShots()) yield return extra;
         }
 
-        /// <summary>Pantallas de las secciones (se amplía en la segunda etapa del rediseño).</summary>
+        /// <summary>Pantallas de las secciones: introducción, HUD, pausa (con sus paneles) y victoria.</summary>
         static IEnumerable<IEnumerator> ExtraShots()
         {
-            yield break;
+            yield return LevelShots("Level_01_DockingBay", "1-1", true);
+            yield return LevelShots("Level_01_3_CargoLock", "1-3", false);
+        }
+
+        static IEnumerator LevelShots(string scene, string code, bool full)
+        {
+            EditorSceneManager.LoadSceneInPlayMode($"Assets/GravedadCero/Scenes/{scene}.unity", new LoadSceneParameters(LoadSceneMode.Single));
+            float start = Time.realtimeSinceStartup;
+            while (SceneManager.GetActiveScene().name != scene && Time.realtimeSinceStartup - start < 15f) yield return null;
+            yield return 1.5f;
+            CaptureAll($"level{code}_intro");
+            var hud = Object.FindAnyObjectByType<LevelHUD>();
+            var level = Object.FindAnyObjectByType<LevelManager>();
+            if (full)
+            {
+                hud.DismissIntro();
+                yield return 1f;
+                CaptureAll($"level{code}_hud");
+
+                var pause = Object.FindAnyObjectByType<PauseController>();
+                var menu = Object.FindAnyObjectByType<PauseMenuUI>();
+                pause.SetPaused(true);
+                foreach (string panel in new[] { "Main", "Controls", "Settings" })
+                {
+                    menu.ShowPanel(panel);
+                    yield return 0.6f;
+                    CaptureAll($"level{code}_pause_{panel}");
+                }
+                menu.ShowPanel("Main");
+                menu.RequestExitToMenu();
+                yield return 0.6f;
+                CaptureAll($"level{code}_pause_Confirm");
+                menu.CancelPending();
+                pause.SetPaused(false);
+            }
+            level.Complete();
+            yield return 1.4f;
+            CaptureAll($"level{code}_victory");
         }
 
         // ---------- Captura y revisión ----------

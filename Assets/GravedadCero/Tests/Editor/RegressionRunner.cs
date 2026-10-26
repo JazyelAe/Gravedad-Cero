@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using GravedadCero.Cameras;
 using GravedadCero.Gravity;
 using GravedadCero.Interaction;
@@ -10,12 +12,15 @@ using GravedadCero.Player;
 using GravedadCero.Puzzles;
 using GravedadCero.Save;
 using GravedadCero.UI;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace GravedadCero.Tests
@@ -139,6 +144,7 @@ namespace GravedadCero.Tests
             yield return MaintenanceShaftSuite();
             yield return CargoLockSuite();
             yield return PauseAndHudSuite();
+            yield return VictoryAndTransitionSuite();
             yield return IntroTimeoutSuite();
             yield return TestGravitySuite();
         }
@@ -684,6 +690,138 @@ namespace GravedadCero.Tests
             yield return 0.3f;
             Check("Volver al menú confirmado carga el menú con el tiempo restaurado", loaded && Time.timeScale == 1f && Cursor.visible);
             Check("volver al menú conserva las secciones completadas", GameProgress.UnlockedSection == unlockedBefore, $"unlocked={GameProgress.UnlockedSection}");
+        }
+
+        // =====================================================================
+        // Pantalla de victoria, transiciones y textos de la interfaz
+        // =====================================================================
+
+        static IEnumerator VictoryAndTransitionSuite()
+        {
+            suite = "Victoria";
+            yield return LoadScene("Level_01_DockingBay");
+            var level = Object.FindAnyObjectByType<LevelManager>();
+            var hud = Object.FindAnyObjectByType<LevelHUD>();
+            yield return 0.5f;
+            level.Complete();
+            yield return new Realtime(0.8f);
+            Check("al completar se ve la pantalla de victoria", hud.VictoryVisible);
+            Check("en la victoria el cursor está visible y libre para los botones", Cursor.visible && Cursor.lockState == CursorLockMode.None);
+            Check("en la victoria Continuar está resaltado", SelectedName() == "Continuar", $"seleccionado={SelectedName()}");
+            CheckGlyphs("1-1 (HUD, pausa y victoria)");
+
+            yield return Press(Key.DownArrow);
+            Check("Flecha abajo resalta Repetir sección", SelectedName() == "Repetir sección", $"seleccionado={SelectedName()}");
+            yield return Press(Key.UpArrow);
+            Check("Flecha arriba vuelve a Continuar", SelectedName() == "Continuar", $"seleccionado={SelectedName()}");
+
+            int loads = SceneTransition.LoadCount;
+            yield return Press(Key.Enter);
+            bool loaded = false;
+            yield return WaitForScene("Level_01_2_MaintenanceShaft", 10f, r => loaded = r);
+            yield return new Realtime(0.5f);
+            Check("Enter en Continuar carga la sección 1-2 una sola vez", loaded && SceneTransition.LoadCount == loads + 1, $"cargas={SceneTransition.LoadCount - loads}");
+
+            // Clic en Repetir y Enter en el mismo instante: una sola carga (la del clic).
+            level = Object.FindAnyObjectByType<LevelManager>();
+            level.Complete();
+            yield return new Realtime(0.8f);
+            var retry = FindButton("Repetir sección");
+            Check("la victoria de 1-2 tiene el botón Repetir sección", retry != null);
+            if (retry == null) yield break;
+            loads = SceneTransition.LoadCount;
+            Click(retry.gameObject);
+            yield return Press(Key.Enter);
+            float t = Time.realtimeSinceStartup;
+            while (!SectionReloaded(level) && Time.realtimeSinceStartup - t < 10f) yield return null;
+            yield return new Realtime(0.8f);
+            Check("clic en Repetir y Enter a la vez: una sola carga y se repite 1-2",
+                SectionReloaded(level) && SceneManager.GetActiveScene().name == "Level_01_2_MaintenanceShaft" && SceneTransition.LoadCount == loads + 1,
+                $"cargas={SceneTransition.LoadCount - loads} escena={SceneManager.GetActiveScene().name}");
+            Check("tras repetir la sección vuelve a jugarse (sin victoria ni pausa)", !Object.FindAnyObjectByType<LevelManager>().IsCompleted
+                && !Object.FindAnyObjectByType<LevelHUD>().VictoryVisible && Time.timeScale == 1f);
+
+            // El ratón encima de Menú principal lo resalta y Enter lo pulsa.
+            level = Object.FindAnyObjectByType<LevelManager>();
+            level.Complete();
+            yield return new Realtime(0.8f);
+            var menuButton = FindButton("Menú principal");
+            Check("la victoria de 1-2 tiene el botón Menú principal", menuButton != null);
+            if (menuButton == null) yield break;
+            Hover(menuButton.gameObject);
+            yield return null;
+            Check("pasar el ratón por Menú principal lo resalta", SelectedName() == "Menú principal", $"seleccionado={SelectedName()}");
+            yield return Press(Key.Enter);
+            yield return WaitForScene("MainMenu", 10f, r => loaded = r);
+            yield return new Realtime(0.5f);
+            Check("Enter pulsa el botón resaltado con el ratón (vuelve al menú)", loaded && Time.timeScale == 1f);
+
+            // Menú: Nueva partida con progreso pide confirmación.
+            var menu = Object.FindAnyObjectByType<MainMenuUI>();
+            int unlocked = GameProgress.UnlockedSection;
+            menu.RequestNewGame();
+            yield return new Realtime(0.3f);
+            Check("Nueva partida con progreso pide confirmación", menu.CurrentPanel == "ConfirmNewGame" && SceneManager.GetActiveScene().name == "MainMenu"
+                && GameProgress.UnlockedSection == unlocked);
+            menu.ShowPanel("Main");
+            Check("cancelar la confirmación conserva el progreso", GameProgress.UnlockedSection == unlocked && unlocked > 0);
+            foreach (string panel in new[] { "Sections", "Character", "Main" }) menu.ShowPanel(panel);
+            CheckGlyphs("menú principal");
+
+            // Transición iniciada desde la pausa: Retroceso con el juego en pausa.
+            yield return LoadScene("Level_01_DockingBay");
+            var pause = Object.FindAnyObjectByType<PauseController>();
+            level = Object.FindAnyObjectByType<LevelManager>();
+            yield return Press(Key.Escape);
+            Check("pausa abierta antes de reiniciar", pause.IsPaused && Time.timeScale == 0f);
+            loads = SceneTransition.LoadCount;
+            yield return Press(Key.Backspace);
+            Check("durante el fundido la sección figura en transición", SceneTransition.IsTransitioning);
+            yield return Press(Key.Escape);
+            level.Restart(); // una segunda petición mientras carga se descarta
+            t = Time.realtimeSinceStartup;
+            while ((SceneTransition.IsTransitioning || !SectionReloaded(level)) && Time.realtimeSinceStartup - t < 10f) yield return null;
+            yield return new Realtime(0.3f);
+            pause = Object.FindAnyObjectByType<PauseController>();
+            Check("Retroceso desde la pausa recarga una sola vez, sin pausa ni tiempo congelado",
+                SectionReloaded(level) && SceneTransition.LoadCount == loads + 1 && !pause.IsPaused && Time.timeScale == 1f,
+                $"cargas={SceneTransition.LoadCount - loads} pausa={pause.IsPaused} timeScale={Time.timeScale}");
+            yield return 0.5f;
+        }
+
+        static string SelectedName()
+        {
+            var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+            return selected != null ? selected.name : "(ninguno)";
+        }
+
+        static Button FindButton(string name) =>
+            Object.FindObjectsByType<Button>().FirstOrDefault(b => b.name == name && b.gameObject.activeInHierarchy);
+
+        static void Hover(GameObject target) =>
+            ExecuteEvents.Execute(target, new PointerEventData(EventSystem.current), ExecuteEvents.pointerEnterHandler);
+
+        static void Click(GameObject target)
+        {
+            var data = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
+            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerEnterHandler);
+            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerUpHandler);
+            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerClickHandler);
+        }
+
+        /// <summary>Todos los textos de la interfaz (también los ocultos) tienen sus caracteres en su propia fuente.</summary>
+        static void CheckGlyphs(string where)
+        {
+            var missing = new List<string>();
+            foreach (var text in Object.FindObjectsByType<TMP_Text>(FindObjectsInactive.Include))
+            {
+                if (text.font == null || string.IsNullOrEmpty(text.text)) continue;
+                string plain = new string(Regex.Replace(text.text, "<[^>]+>", "").Where(c => !char.IsControl(c)).ToArray());
+                if (!text.font.HasCharacters(plain, out uint[] chars, false, false))
+                    missing.Add($"{text.name} ({text.font.name}): {string.Join(" ", chars.Distinct().Select(c => char.ConvertFromUtf32((int)c)))}");
+            }
+            Check($"textos de {where} sin caracteres que falten en su fuente", missing.Count == 0, string.Join(" | ", missing));
         }
 
         /// <summary>True cuando ya existe un LevelManager nuevo (la escena terminó de recargarse).</summary>
