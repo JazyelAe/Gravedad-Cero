@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using GravedadCero.Interaction;
 using UnityEngine;
@@ -27,6 +28,9 @@ namespace GravedadCero.Puzzles
         MaterialPropertyBlock propertyBlock;
 
         public bool IsPressed { get; private set; }
+
+        /// <summary>Se lanza cuando la placa pasa a estar presionada o libre.</summary>
+        public event Action<bool> PressedChanged;
 
         void Awake()
         {
@@ -76,6 +80,7 @@ namespace GravedadCero.Puzzles
             foreach (Activatable target in targets)
                 if (target != null) target.SetActivated(pressed);
             RefreshIndicator();
+            PressedChanged?.Invoke(pressed);
         }
 
         void RefreshIndicator()

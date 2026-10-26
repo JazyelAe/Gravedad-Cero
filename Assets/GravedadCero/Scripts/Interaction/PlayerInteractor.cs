@@ -26,6 +26,9 @@ namespace GravedadCero.Interaction
         /// <summary>Se lanza cuando cambia el objeto enfocado. La interfaz lo usará en el Sprint 11.</summary>
         public event Action<IInteractable> FocusChanged;
 
+        /// <summary>Se lanza cada vez que Kai usa un objeto (por ejemplo, para el sonido).</summary>
+        public event Action<IInteractable> Interacted;
+
         Vector3 Origin => transform.position + transform.up * originHeight;
 
         void Update()
@@ -43,6 +46,7 @@ namespace GravedadCero.Interaction
             if (Current == null || !Current.CanInteract(gameObject)) return;
 
             Current.Interact(gameObject);
+            Interacted?.Invoke(Current);
             // Provisional hasta el Sprint 11: muestra el nuevo texto (por ejemplo, "Desactivar").
             if (Current.CanInteract(gameObject)) Debug.Log($"[E] {Current.Prompt}");
         }

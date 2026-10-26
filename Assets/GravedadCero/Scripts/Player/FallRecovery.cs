@@ -1,3 +1,4 @@
+using System;
 using GravedadCero.Gravity;
 using GravedadCero.Level;
 using UnityEngine;
@@ -51,6 +52,9 @@ namespace GravedadCero.Player
             if (other.GetComponent<HazardZone>() != null) Respawn();
         }
 
+        /// <summary>Se lanza cada vez que Kai reaparece en el inicio.</summary>
+        public event Action Respawned;
+
         public void Respawn()
         {
             if (gravityController != null) gravityController.ResetGravity();
@@ -60,6 +64,7 @@ namespace GravedadCero.Player
             body.rotation = spawnRotation;
             transform.SetPositionAndRotation(spawnPosition, spawnRotation);
             airTime = 0f;
+            Respawned?.Invoke();
         }
     }
 }

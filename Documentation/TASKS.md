@@ -31,6 +31,7 @@ Estados:
 | R1.2 | Transiciones con fundido (`SceneTransition`) y protección contra cargas dobles | `b68b374` | Sí | Sí: una sola carga con clic y Enter, y desde la pausa | **Pendiente** |
 | R1.3 | Menú principal rediseñado: fondo espacial, tarjetas de sección, ficha de personaje, confirmación de Nueva partida | `bb99458` | Sí | Sí: regresión y capturas | **Pendiente** |
 | R1.4 | HUD, pausa, controles, configuración, confirmación y victoria con el estilo Helios-7; botones de victoria con mouse y teclado | Etapa B | Sí | Sí: 19 comprobaciones nuevas y capturas | **Pendiente** |
+| A.1 | Música por escena con fundido cruzado, efectos de sonido por eventos, volumen de música y efectos en la pausa (`GameAudio`, `AudioCatalog`) | Fase 2, etapa de audio | Sí | Sí: 12 comprobaciones, regresión 126/126 | **Pendiente**: escuchar música y efectos |
 | T.2 | Capturas de interfaz con revisión automática de textos (`Tests/Editor/UIScreenshotRunner.cs`) | `f5d15b4` | Sí | No aplica | No aplica |
 
 ## Rediseño visual, fase 1 (26-10-2026)

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 253069d19759cac478a3f3e06c401942, type: 3}
+  m_Name: AudioCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::GravedadCero.Audio.AudioCatalog
+  music:
+  - scene: MainMenu
+    clip: {fileID: 8300000, guid: 6c383fb10e7a1224eaf3d8d861f6da75, type: 3}
+  - scene: Level_01_DockingBay
+    clip: {fileID: 8300000, guid: 2c09a75fadd32674496effe0fcba2465, type: 3}
+  - scene: Level_01_2_MaintenanceShaft
+    clip: {fileID: 8300000, guid: adea0a26ab59300419adc097b6e79c19, type: 3}
+  - scene: Level_01_3_CargoLock
+    clip: {fileID: 8300000, guid: ece56f876ad93ff479b44d427c6e3d9f, type: 3}
+  - scene: Level_01_4_RotationRing
+    clip: {fileID: 8300000, guid: fd3e82ccf0691d7479bd96496a378147, type: 3}
+  - scene: Level_01_5_Core
+    clip: {fileID: 8300000, guid: a29e5f1991b0ccf42af21cf4f726f4b8, type: 3}
+  victory: {fileID: 8300000, guid: 78944e3d1ebbae549a43509186dae658, type: 3}
+  gravityChange: {fileID: 8300000, guid: 04105a8f2f0e8f24db1859018c7dea28, type: 3}
+  anchor: {fileID: 8300000, guid: 30a1399575ef78a4ab22983e2c8f8716, type: 3}
+  release: {fileID: 8300000, guid: ef809e5a44f1b62488915f4de0953463, type: 3}
+  doorOpen: {fileID: 8300000, guid: 8f094a3aa64f7e94b8ff52093488100b, type: 3}
+  doorClose: {fileID: 8300000, guid: c8920f51767ee9e4e9deb4e13b928bfd, type: 3}
+  platePressed: {fileID: 8300000, guid: 61d0a3ae4e863724281409c3c99c56b2, type: 3}
+  switchUsed: {fileID: 8300000, guid: a5f786bf91edc684e9bfa407083845ea, type: 3}
+  respawn: {fileID: 8300000, guid: bf5280c54a0895349964b20a84939ef6, type: 3}
+  uiMove: {fileID: 8300000, guid: 7fa42698c9ecdee4ea33c6433f821542, type: 3}
+  uiClick: {fileID: 8300000, guid: b90a642629c6b15438f6f0bb5743ff4d, type: 3}

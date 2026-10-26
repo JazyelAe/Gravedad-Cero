@@ -43,6 +43,10 @@ namespace GravedadCero.UI
         TMP_Text confirmDetail;
         TMP_Text sensitivityValue;
         Slider sensitivitySlider;
+        TMP_Text musicValue;
+        Slider musicSlider;
+        TMP_Text sfxValue;
+        Slider sfxSlider;
         Toggle invertToggle;
         Action pendingConfirm;
 
@@ -106,6 +110,18 @@ namespace GravedadCero.UI
         public void SetSensitivity(float value)
         {
             GameSettings.MouseSensitivity = value;
+            RefreshSettings();
+        }
+
+        public void SetMusicVolume(float value)
+        {
+            GameSettings.MusicVolume = value;
+            RefreshSettings();
+        }
+
+        public void SetSfxVolume(float value)
+        {
+            GameSettings.SfxVolume = value;
             RefreshSettings();
         }
 
@@ -201,7 +217,7 @@ namespace GravedadCero.UI
             var panel = Panel(canvas, "Main", "Opciones", 600).transform;
             UIFactory.Button(panel, "Reanudar", Resume, 80, "Volver a la sección");
             UIFactory.Button(panel, "Controles", () => ShowPanel("Controls"), 80, "Teclado y mouse");
-            UIFactory.Button(panel, "Configuración", () => ShowPanel("Settings"), 80, "Sensibilidad y cámara");
+            UIFactory.Button(panel, "Configuración", () => ShowPanel("Settings"), 80, "Cámara y sonido");
             UIFactory.Button(panel, "Reiniciar sección", RequestRestart, 80, "Empezar desde el principio");
             UIFactory.Button(panel, "Volver al menú", RequestExitToMenu, 80, "Las secciones completadas se conservan");
         }
@@ -237,17 +253,22 @@ namespace GravedadCero.UI
         void BuildSettingsPanel(Transform canvas)
         {
             var panel = Panel(canvas, "Settings", "Configuración", 600).transform;
-            var row = UIFactory.Row(panel, "SensitivityRow", 40, 0f);
-            var label = UIFactory.Label(row, "Label", "Sensibilidad del mouse", UITheme.SizeBody, TextAnchor.MiddleLeft, new Vector2(0, 0.5f), Vector2.zero, new Vector2(400, 40), UITheme.Text);
-            label.textWrappingMode = TextWrappingModes.NoWrap;
-            sensitivityValue = UIFactory.Label(row, "Value", "", UITheme.SizeBody, TextAnchor.MiddleRight, new Vector2(0, 0.5f), Vector2.zero, new Vector2(128, 40), UITheme.Cyan, FontStyle.Bold);
-            sensitivitySlider = UIFactory.Slider(panel, "Sensitivity", GameSettings.MinSensitivity, GameSettings.MaxSensitivity,
-                GameSettings.MouseSensitivity, SetSensitivity);
-            UIFactory.PanelText(panel, "SensitivityNote", "Se aplica a la cámara en todas las secciones.", UITheme.SizeCaption, 30, UITheme.TextSecondary, TextAnchor.MiddleLeft);
-            UIFactory.Spacer(panel, 4);
+            sensitivitySlider = SliderRow(panel, "Sensitivity", "Sensibilidad del mouse", GameSettings.MinSensitivity, GameSettings.MaxSensitivity,
+                GameSettings.MouseSensitivity, SetSensitivity, out sensitivityValue);
             invertToggle = UIFactory.Toggle(panel, "Invertir eje Y de la cámara", GameSettings.InvertY, SetInvertY);
-            UIFactory.Spacer(panel, 4);
+            musicSlider = SliderRow(panel, "Music", "Volumen de la música", 0f, 1f, GameSettings.MusicVolume, SetMusicVolume, out musicValue);
+            sfxSlider = SliderRow(panel, "Sfx", "Volumen de los efectos", 0f, 1f, GameSettings.SfxVolume, SetSfxVolume, out sfxValue);
             UIFactory.Button(panel, "Volver", () => ShowPanel("Main"), 64);
+        }
+
+        /// <summary>Etiqueta con su valor a la derecha y, debajo, el deslizador.</summary>
+        static Slider SliderRow(Transform panel, string name, string text, float min, float max, float value, Action<float> onChanged, out TMP_Text valueLabel)
+        {
+            var row = UIFactory.Row(panel, name + "Row", 40, 0f);
+            var label = UIFactory.Label(row, "Label", text, UITheme.SizeBody, TextAnchor.MiddleLeft, new Vector2(0, 0.5f), Vector2.zero, new Vector2(400, 40), UITheme.Text);
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            valueLabel = UIFactory.Label(row, "Value", "", UITheme.SizeBody, TextAnchor.MiddleRight, new Vector2(0, 0.5f), Vector2.zero, new Vector2(128, 40), UITheme.Cyan, FontStyle.Bold);
+            return UIFactory.Slider(panel, name, min, max, value, onChanged);
         }
 
         void BuildConfirmPanel(Transform canvas)
@@ -280,6 +301,10 @@ namespace GravedadCero.UI
             float percent = sensitivity / GameSettings.DefaultSensitivity * 100f;
             sensitivityValue.text = $"{percent:F0} %";
             sensitivitySlider.SetValueWithoutNotify(sensitivity);
+            musicValue.text = $"{GameSettings.MusicVolume * 100f:F0} %";
+            musicSlider.SetValueWithoutNotify(GameSettings.MusicVolume);
+            sfxValue.text = $"{GameSettings.SfxVolume * 100f:F0} %";
+            sfxSlider.SetValueWithoutNotify(GameSettings.SfxVolume);
             invertToggle.SetIsOnWithoutNotify(GameSettings.InvertY);
         }
     }

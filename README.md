@@ -46,7 +46,7 @@ El progreso y la skin se guardan solos. Las soluciones están en [`Documentation
 | Flechas | Moverse entre las opciones de los menús |
 | Esc | Abrir o cerrar la pausa, o volver atrás en un menú. En la pantalla de victoria, volver al menú principal |
 
-**Menú de pausa:** Reanudar, Controles (tabla de teclas), Configuración (sensibilidad del mouse e invertir el eje Y, que se guardan automáticamente), Reiniciar sección y Volver al menú. Las dos últimas piden confirmación; al volver al menú se conservan las secciones completadas.
+**Menú de pausa:** Reanudar, Controles (tabla de teclas), Configuración (sensibilidad del mouse, invertir el eje Y y volumen de la música y de los efectos, que se guardan automáticamente), Reiniciar sección y Volver al menú. Las dos últimas piden confirmación; al volver al menú se conservan las secciones completadas.
 
 La pausa muestra también el objetivo y la pista de la sección.
 
@@ -61,6 +61,8 @@ Todas las pantallas comparten la identidad visual **Helios-7**, construida por c
 - `UIFactory`: paneles, botones, deslizadores, casillas y recuadros de tecla;
 - `UIButtonFX`: el foco es el mismo con teclado y mouse;
 - `SceneTransition`: fundido entre escenas que impide cargas dobles.
+
+**Audio:** `Scripts/Audio/GameAudio` se crea solo al arrancar, sobrevive a los cambios de escena y hace un fundido cruzado hacia la pista de cada escena. Escucha los eventos del juego (gravedad, anclaje, compuertas, placas, interruptores, reaparición, pausa y victoria) para reproducir los efectos. La asignación está en `Audio/Resources/AudioCatalog.asset`. Música de SRG774 y efectos de Kenney, ambos CC0.
 
 Los textos usan TextMeshPro, con Orbitron para los títulos y Exo 2 para el resto (licencia SIL OFL, ver créditos).
 

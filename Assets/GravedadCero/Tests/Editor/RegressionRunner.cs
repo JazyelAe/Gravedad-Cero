@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GravedadCero.Audio;
 using GravedadCero.Cameras;
 using GravedadCero.Gravity;
 using GravedadCero.Interaction;
@@ -48,6 +49,10 @@ namespace GravedadCero.Tests
         const string SkinPref = "gravedadcero.skin";
         const string SensitivityPref = "gravedadcero.mouseSensitivity";
         const string InvertPref = "gravedadcero.invertY";
+        const string MusicPref = "gravedadcero.musicVolume";
+        const string SfxPref = "gravedadcero.sfxVolume";
+        const string PrevMusicKey = "GC_REGRESSION_PREV_MUSIC";
+        const string PrevSfxKey = "GC_REGRESSION_PREV_SFX";
         const string PrevSensitivityKey = "GC_REGRESSION_PREV_SENS";
         const string PrevInvertKey = "GC_REGRESSION_PREV_INVERT";
         const string ScenesDir = "Assets/GravedadCero/Scenes/";
@@ -92,6 +97,8 @@ namespace GravedadCero.Tests
             SessionState.SetInt(PrevSkinKey, PlayerPrefs.GetInt(SkinPref, 0));
             SessionState.SetFloat(PrevSensitivityKey, PlayerPrefs.GetFloat(SensitivityPref, GameSettings.DefaultSensitivity));
             SessionState.SetInt(PrevInvertKey, PlayerPrefs.GetInt(InvertPref, 0));
+            SessionState.SetFloat(PrevMusicKey, PlayerPrefs.GetFloat(MusicPref, GameSettings.DefaultMusicVolume));
+            SessionState.SetFloat(PrevSfxKey, PlayerPrefs.GetFloat(SfxPref, GameSettings.DefaultSfxVolume));
             EditorSceneManager.OpenScene(ScenesDir + "MainMenu.unity");
             EditorApplication.EnterPlaymode();
         }
@@ -145,6 +152,7 @@ namespace GravedadCero.Tests
             yield return CargoLockSuite();
             yield return PauseAndHudSuite();
             yield return VictoryAndTransitionSuite();
+            yield return AudioSuite();
             yield return IntroTimeoutSuite();
             yield return TestGravitySuite();
         }
@@ -165,6 +173,8 @@ namespace GravedadCero.Tests
             PlayerPrefs.SetInt(SkinPref, SessionState.GetInt(PrevSkinKey, 0));
             PlayerPrefs.SetFloat(SensitivityPref, SessionState.GetFloat(PrevSensitivityKey, GameSettings.DefaultSensitivity));
             PlayerPrefs.SetInt(InvertPref, SessionState.GetInt(PrevInvertKey, 0));
+            PlayerPrefs.SetFloat(MusicPref, SessionState.GetFloat(PrevMusicKey, GameSettings.DefaultMusicVolume));
+            PlayerPrefs.SetFloat(SfxPref, SessionState.GetFloat(PrevSfxKey, GameSettings.DefaultSfxVolume));
             PlayerPrefs.Save();
             GameSettings.Reload();
             if (testKeyboard != null)
@@ -788,6 +798,58 @@ namespace GravedadCero.Tests
                 $"cargas={SceneTransition.LoadCount - loads} pausa={pause.IsPaused} timeScale={Time.timeScale}");
             yield return 0.5f;
         }
+
+        // =====================================================================
+        // Audio: música por escena, efectos y volumen
+        // =====================================================================
+
+        static IEnumerator AudioSuite()
+        {
+            suite = "Audio";
+            var catalog = GameAudio.Catalog;
+            Check("catálogo de audio cargado desde Resources", catalog != null && catalog.MusicFor("MainMenu") != null && catalog.victory != null);
+
+            yield return LoadScene("MainMenu");
+            yield return new Realtime(0.8f);
+            Check("en el menú suena su música", GameAudio.CurrentMusic == catalog.MusicFor("MainMenu"), $"pista={ClipName(GameAudio.CurrentMusic)}");
+            int count = GameAudio.SfxCount;
+            yield return Press(Key.DownArrow);
+            Check("moverse entre botones suena", GameAudio.SfxCount > count && GameAudio.LastSfx == catalog.uiMove, $"último={ClipName(GameAudio.LastSfx)}");
+
+            yield return LoadScene("Level_01_DockingBay");
+            yield return new Realtime(0.8f);
+            Check("en 1-1 suena su música", GameAudio.CurrentMusic == catalog.MusicFor("Level_01_DockingBay"), $"pista={ClipName(GameAudio.CurrentMusic)}");
+            Check("hay un solo GameAudio tras cambiar de escena", Object.FindObjectsByType<GameAudio>().Length == 1);
+            var p = Player.Find();
+            count = GameAudio.SfxCount;
+            p.gravity.RotateRight(p.go.transform);
+            Check("cambiar la gravedad suena", GameAudio.SfxCount == count + 1 && GameAudio.LastSfx == catalog.gravityChange, $"último={ClipName(GameAudio.LastSfx)}");
+            p.gravity.ResetGravity();
+            yield return 1.5f;
+
+            var menu = Object.FindAnyObjectByType<PauseMenuUI>();
+            menu.SetMusicVolume(0.25f);
+            menu.SetSfxVolume(1.5f);
+            Check("los volúmenes se guardan y se limitan a 0-1", Mathf.Approximately(GameSettings.MusicVolume, 0.25f) && Mathf.Approximately(GameSettings.SfxVolume, 1f));
+            GameSettings.Reload();
+            Check("los volúmenes persisten (PlayerPrefs)", Mathf.Approximately(GameSettings.MusicVolume, 0.25f) && Mathf.Approximately(GameSettings.SfxVolume, 1f));
+
+            p.level.Complete();
+            yield return null;
+            Check("al completar la sección suena la victoria", GameAudio.LastSfx == catalog.victory, $"último={ClipName(GameAudio.LastSfx)}");
+            Check("la música de la sección sigue durante la victoria", GameAudio.CurrentMusic == catalog.MusicFor("Level_01_DockingBay"));
+
+            yield return LoadScene("Level_01_2_MaintenanceShaft");
+            yield return new Realtime(0.8f);
+            Check("en 1-2 suena su música", GameAudio.CurrentMusic == catalog.MusicFor("Level_01_2_MaintenanceShaft"), $"pista={ClipName(GameAudio.CurrentMusic)}");
+            p = Player.Find();
+            p.Teleport(new Vector3(0, 0.05f, 20f), Quaternion.identity);
+            float t = Time.time;
+            while (GameAudio.LastSfx != catalog.respawn && Time.time - t < 5f) yield return null;
+            Check("caer al fondo rojo suena al reaparecer", GameAudio.LastSfx == catalog.respawn, $"último={ClipName(GameAudio.LastSfx)}");
+        }
+
+        static string ClipName(AudioClip clip) => clip != null ? clip.name : "(ninguno)";
 
         static string SelectedName()
         {

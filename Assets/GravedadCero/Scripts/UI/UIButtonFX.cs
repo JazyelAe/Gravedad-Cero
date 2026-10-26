@@ -1,3 +1,4 @@
+using GravedadCero.Audio;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,11 +9,11 @@ namespace GravedadCero.UI
     /// <summary>
     /// Estados visuales de un botón Helios-7: normal, seleccionado (teclado o ratón encima),
     /// presionado y desactivado. Al pasar el ratón por encima el botón también queda
-    /// seleccionado, así teclado y ratón muestran siempre el mismo foco. Usa tiempo no
-    /// escalado para funcionar también con el juego en pausa.
+    /// seleccionado, así teclado y ratón muestran siempre el mismo foco. Suena al moverse
+    /// entre botones y al pulsarlos. Usa tiempo no escalado para funcionar también en pausa.
     /// </summary>
     [RequireComponent(typeof(Selectable))]
-    public class UIButtonFX : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+    public class UIButtonFX : MonoBehaviour, ISelectHandler, IPointerEnterHandler, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         static readonly Color NormalFill = new Color(0.075f, 0.137f, 0.212f, 0.92f);
         static readonly Color SelectedFill = new Color(0.06f, 0.36f, 0.48f, 0.98f);
@@ -29,6 +30,9 @@ namespace GravedadCero.UI
         bool pressed;
         float accentHeight;
 
+        // Último botón seleccionado: al abrir un panel nuevo el foco salta sin sonar.
+        static GameObject lastSelected;
+
         public void Bind(Selectable target, Image fillImage, Image accentImage, TMP_Text labelText, TMP_Text subtitleText, Image chevronImage)
         {
             selectable = target;
@@ -38,6 +42,7 @@ namespace GravedadCero.UI
             subtitle = subtitleText;
             chevron = chevronImage;
             accentHeight = accent.rectTransform.sizeDelta.y;
+            if (target is Button button) button.onClick.AddListener(() => GameAudio.Play(GameAudio.Catalog.uiClick, 0.7f));
             Apply(0f);
         }
 
@@ -64,6 +69,13 @@ namespace GravedadCero.UI
             chevron.color = new Color(c.r, c.g, c.b, t);
             chevron.rectTransform.anchoredPosition = new Vector2(Mathf.Lerp(-34f, -24f, t), 0f);
             transform.localScale = Vector3.one * (pressed ? 0.985f : 1f + 0.012f * t);
+        }
+
+        public void OnSelect(BaseEventData eventData)
+        {
+            bool moved = lastSelected != null && lastSelected != gameObject && lastSelected.activeInHierarchy;
+            lastSelected = gameObject;
+            if (moved) GameAudio.Play(GameAudio.Catalog.uiMove, 0.6f);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
