@@ -13,6 +13,8 @@ using GravedadCero.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -20,8 +22,9 @@ namespace GravedadCero.Tests
 {
     /// <summary>
     /// Pruebas de regresión en Play Mode del juego completo: menú, secciones 1-1, 1-2 y 1-3,
-    /// y Test_Gravity. Simulan al jugador dando órdenes directas a los componentes (no
-    /// pulsan teclas reales) y comprueban el resultado de la física y los puzles.
+    /// pausa, HUD, configuración de cámara y Test_Gravity. Simulan al jugador dando órdenes
+    /// directas a los componentes o, en las pruebas de pausa, pulsando teclas en un teclado
+    /// virtual del Input System (no un teclado físico), y comprueban el resultado.
     ///
     /// Uso en el editor: menú Gravedad Cero → Ejecutar pruebas de regresión.
     /// Uso por línea de comandos:
@@ -38,6 +41,10 @@ namespace GravedadCero.Tests
         const string PrevSkinKey = "GC_REGRESSION_PREV_SKIN";
         const string UnlockPref = "gravedadcero.unlockedSection";
         const string SkinPref = "gravedadcero.skin";
+        const string SensitivityPref = "gravedadcero.mouseSensitivity";
+        const string InvertPref = "gravedadcero.invertY";
+        const string PrevSensitivityKey = "GC_REGRESSION_PREV_SENS";
+        const string PrevInvertKey = "GC_REGRESSION_PREV_INVERT";
         const string ScenesDir = "Assets/GravedadCero/Scenes/";
         const float GlobalTimeout = 600f;
 
@@ -47,7 +54,11 @@ namespace GravedadCero.Tests
         static string suite = "";
         static int failures;
         static float waitUntil;
+        static float waitUntilRealtime;
         static bool started;
+        static Keyboard testKeyboard;
+        static InputSettings.EditorInputBehaviorInPlayMode previousEditorInputBehavior;
+        static InputSettings.BackgroundBehavior previousBackgroundBehavior;
 
         static RegressionRunner()
         {
@@ -74,6 +85,8 @@ namespace GravedadCero.Tests
             SessionState.SetBool(BatchKey, batch);
             SessionState.SetInt(PrevUnlockKey, PlayerPrefs.GetInt(UnlockPref, 0));
             SessionState.SetInt(PrevSkinKey, PlayerPrefs.GetInt(SkinPref, 0));
+            SessionState.SetFloat(PrevSensitivityKey, PlayerPrefs.GetFloat(SensitivityPref, GameSettings.DefaultSensitivity));
+            SessionState.SetInt(PrevInvertKey, PlayerPrefs.GetInt(InvertPref, 0));
             EditorSceneManager.OpenScene(ScenesDir + "MainMenu.unity");
             EditorApplication.EnterPlaymode();
         }
@@ -87,7 +100,14 @@ namespace GravedadCero.Tests
         // ---------- Pequeño planificador de corrutinas en el editor ----------
         // yield return null    -> siguiente frame
         // yield return <float> -> esperar esos segundos de juego
+        // yield return new Realtime(s) -> esperar segundos reales (sirve con el juego en pausa)
         // yield return <IEnumerator> -> ejecutar una sub-rutina
+
+        sealed class Realtime
+        {
+            public readonly float seconds;
+            public Realtime(float seconds) { this.seconds = seconds; }
+        }
 
         static void Tick()
         {
@@ -98,7 +118,7 @@ namespace GravedadCero.Tests
                 routines.Push(RunAll());
             }
             if (Time.realtimeSinceStartup > GlobalTimeout) { Check("tiempo máximo global", false); Finish(); return; }
-            if (Time.time < waitUntil) return;
+            if (Time.time < waitUntil || Time.realtimeSinceStartup < waitUntilRealtime) return;
 
             while (routines.Count > 0)
             {
@@ -106,6 +126,7 @@ namespace GravedadCero.Tests
                 if (!top.MoveNext()) { routines.Pop(); continue; }
                 if (top.Current is IEnumerator nested) { routines.Push(nested); continue; }
                 if (top.Current is float seconds) waitUntil = Time.time + seconds;
+                if (top.Current is Realtime real) waitUntilRealtime = Time.realtimeSinceStartup + real.seconds;
                 return;
             }
             Finish();
@@ -117,6 +138,8 @@ namespace GravedadCero.Tests
             yield return DockingBaySuite();
             yield return MaintenanceShaftSuite();
             yield return CargoLockSuite();
+            yield return PauseAndHudSuite();
+            yield return IntroTimeoutSuite();
             yield return TestGravitySuite();
         }
 
@@ -134,7 +157,17 @@ namespace GravedadCero.Tests
 
             PlayerPrefs.SetInt(UnlockPref, SessionState.GetInt(PrevUnlockKey, 0));
             PlayerPrefs.SetInt(SkinPref, SessionState.GetInt(PrevSkinKey, 0));
+            PlayerPrefs.SetFloat(SensitivityPref, SessionState.GetFloat(PrevSensitivityKey, GameSettings.DefaultSensitivity));
+            PlayerPrefs.SetInt(InvertPref, SessionState.GetInt(PrevInvertKey, 0));
             PlayerPrefs.Save();
+            GameSettings.Reload();
+            if (testKeyboard != null)
+            {
+                InputSystem.RemoveDevice(testKeyboard);
+                InputSystem.settings.editorInputBehaviorInPlayMode = previousEditorInputBehavior;
+                InputSystem.settings.backgroundBehavior = previousBackgroundBehavior;
+                testKeyboard = null;
+            }
 
             int passed = 0;
             foreach (string l in lines) if (l.StartsWith("PASS")) passed++;
@@ -264,12 +297,15 @@ namespace GravedadCero.Tests
             Check("tres secciones configuradas", menu.Sections.Count == 3);
 
             GameProgress.ResetProgress();
+            var preview = Object.FindAnyObjectByType<KaiSkinApplier>();
+            // La prueba parte de la primera skin, sea cual sea la que tenga guardada el jugador.
+            preview.Apply(0);
+            GameProgress.SelectedSkin = 0;
             menu.ShowPanel("Main");
             menu.LoadSection(1);
             yield return 0.5f;
             Check("una sección bloqueada no se carga", SceneManager.GetActiveScene().name == "MainMenu");
 
-            var preview = Object.FindAnyObjectByType<KaiSkinApplier>();
             menu.ChangeSkin(1);
             Check("Siguiente cambia la skin y la guarda", preview.CurrentIndex == 1 && GameProgress.SelectedSkin == 1,
                 $"skin={preview.Catalog.Get(preview.CurrentIndex).displayName}");
@@ -357,6 +393,9 @@ namespace GravedadCero.Tests
             Check("Kai cruza la compuerta y completa 1-1", p.level.IsCompleted, $"pos={p.Position}");
             Check("el Animator recibe la velocidad de carrera", maxSpeed > 4f, $"max={maxSpeed:F2}");
             Check("completar 1-1 desbloquea 1-2", GameProgress.UnlockedSection >= 1);
+            var victoryPause = Object.FindAnyObjectByType<PauseController>();
+            victoryPause.HandleCancel();
+            Check("en la pantalla de victoria no se abre la pausa", !victoryPause.IsPaused && Time.timeScale == 1f);
 
             box.Release();
             yield return 2.5f;
@@ -475,6 +514,197 @@ namespace GravedadCero.Tests
             Check("al final del sector, Continuar vuelve al menú", loaded);
             yield return 0.5f;
         }
+
+        // =====================================================================
+        // Teclado virtual: pulsaciones que pasan por el Input System y PlayerInputHandler
+        // =====================================================================
+
+        static void EnsureKeyboard()
+        {
+            if (testKeyboard != null) return;
+            // En el editor, el teclado solo llega al juego si la ventana Game tiene el foco.
+            // Y en modo batch el editor no tiene foco: sin IgnoreFocus el teclado se desactiva.
+            previousEditorInputBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
+            previousBackgroundBehavior = InputSystem.settings.backgroundBehavior;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            testKeyboard = InputSystem.AddDevice<Keyboard>("RegressionKeyboard");
+        }
+
+        static IEnumerator Press(Key key)
+        {
+            EnsureKeyboard();
+            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(key));
+            yield return null;
+            yield return null;
+            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState());
+            yield return null;
+            yield return null;
+        }
+
+        static IEnumerator Hold(Key key, float gameSeconds)
+        {
+            EnsureKeyboard();
+            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(key));
+            yield return gameSeconds;
+            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState());
+            yield return null;
+            yield return null;
+        }
+
+        // =====================================================================
+        // Pausa, HUD y configuración de cámara (sección 1-1)
+        // =====================================================================
+
+        static IEnumerator PauseAndHudSuite()
+        {
+            suite = "Pausa";
+            yield return LoadScene("Level_01_DockingBay");
+            var kai = GameObject.FindWithTag("Player");
+            var body = kai.GetComponent<Rigidbody>();
+            var hud = Object.FindAnyObjectByType<LevelHUD>();
+            var pause = Object.FindAnyObjectByType<PauseController>();
+            var menu = Object.FindAnyObjectByType<PauseMenuUI>();
+            var gravity = Object.FindAnyObjectByType<GravityController>();
+            var cam = Object.FindAnyObjectByType<GravityCamera>();
+            Check("referencias: HUD, pausa, menú de pausa y EventSystem", hud && pause && menu && UnityEngine.EventSystems.EventSystem.current != null);
+            Check("al empezar se ve la tarjeta de introducción", hud.Intro == LevelHUD.IntroState.Showing && hud.IntroAlpha > 0.9f);
+            yield return 1f;
+            Check("con Kai quieto la introducción sigue visible", hud.Intro == LevelHUD.IntroState.Showing);
+            yield return Hold(Key.W, 0.6f);
+            yield return new Realtime(0.8f);
+            Check("al moverse Kai (tecla W) la introducción se desvanece", hud.Intro == LevelHUD.IntroState.Hidden && hud.IntroAlpha == 0f, $"estado={hud.Intro}");
+
+            // La pausa congela la física.
+            body.linearVelocity = Vector3.zero;
+            body.position = new Vector3(0f, 5f, 6f);
+            kai.transform.position = body.position;
+            yield return 0.15f;
+            yield return Press(Key.Escape);
+            Check("Esc abre la pausa", pause.IsPaused && Time.timeScale == 0f && menu.CurrentPanel == "Main");
+            Check("en pausa el cursor está visible y libre", Cursor.visible && Cursor.lockState == CursorLockMode.None);
+            Vector3 frozen = kai.transform.position;
+            yield return new Realtime(0.6f);
+            Check("en pausa Kai no avanza (caída congelada)", Vector3.Distance(kai.transform.position, frozen) < 0.001f,
+                $"delta={Vector3.Distance(kai.transform.position, frozen):F4}");
+            yield return Press(Key.R);
+            Check("en pausa la tecla R no cambia la gravedad", gravity.Direction == Vector3.down);
+            Check("en pausa el controlador de gravedad rechaza cambios", !gravity.RotateRight(kai.transform) && gravity.Direction == Vector3.down);
+
+            yield return Press(Key.Escape);
+            Check("Esc reanuda con el tiempo normal", !pause.IsPaused && Time.timeScale == 1f);
+            // En modo batch no hay ventana: Unity no puede bloquear el cursor de verdad,
+            // así que solo se comprueba que se oculta. El bloqueo real es prueba manual.
+            Check("al reanudar el cursor se oculta", !Cursor.visible);
+            yield return 0.3f;
+            Check("al reanudar Kai sigue cayendo", kai.transform.position.y < frozen.y - 0.05f, $"y={kai.transform.position.y:F2}");
+            yield return 1.5f;
+
+            // Esc repetido alterna sin duplicar estados.
+            yield return Press(Key.Escape);
+            bool firstPaused = pause.IsPaused;
+            yield return Press(Key.Escape);
+            Check("Esc dos veces seguidas abre y cierra (sin pausas duplicadas)", firstPaused && !pause.IsPaused && Time.timeScale == 1f
+                && Object.FindObjectsByType<PauseMenuUI>().Length == 1 && Object.FindObjectsByType<PauseController>().Length == 1);
+
+            // Esc dentro de un submenú vuelve al panel principal.
+            yield return Press(Key.Escape);
+            menu.ShowPanel("Controls");
+            yield return Press(Key.Escape);
+            Check("Esc en Controles vuelve al panel principal sin reanudar", pause.IsPaused && menu.CurrentPanel == "Main");
+
+            // Configuración: sensibilidad e inversión del eje Y.
+            menu.ShowPanel("Settings");
+            menu.SetSensitivity(0.3f);
+            menu.SetInvertY(false);
+            menu.SetSensitivity(5f);
+            Check("la sensibilidad se limita a un máximo seguro", Mathf.Approximately(GameSettings.MouseSensitivity, GameSettings.MaxSensitivity));
+            menu.SetSensitivity(0.3f);
+            menu.Resume();
+            yield return null;
+            float pitch0 = cam.Pitch;
+            cam.AddLookInput(new Vector2(0f, 10f));
+            yield return null;
+            float normalDelta = cam.Pitch - pitch0;
+            menu.SetInvertY(true);
+            float pitch1 = cam.Pitch;
+            cam.AddLookInput(new Vector2(0f, 10f));
+            yield return null;
+            float invertedDelta = cam.Pitch - pitch1;
+            Check("la sensibilidad se aplica al instante (10 px x 0.3 = 3 grados)", Mathf.Abs(normalDelta + 3f) < 0.05f, $"delta={normalDelta:F2}");
+            Check("invertir Y cambia el sentido de la cámara", Mathf.Abs(invertedDelta - 3f) < 0.05f, $"delta={invertedDelta:F2}");
+            Check("la configuración no cambia la gravedad", gravity.Direction == Vector3.down);
+
+            // Reiniciar desde la pausa pide confirmación.
+            yield return Press(Key.Escape);
+            var levelBefore = Object.FindAnyObjectByType<LevelManager>();
+            menu.RequestRestart();
+            yield return new Realtime(0.3f);
+            Check("Reiniciar pide confirmación y no reinicia todavía", menu.CurrentPanel == "Confirm" && pause.IsPaused
+                && Object.FindAnyObjectByType<LevelManager>() == levelBefore);
+            yield return Press(Key.Escape);
+            Check("Esc en la confirmación la cancela", menu.CurrentPanel == "Main" && pause.IsPaused);
+            menu.RequestRestart();
+            menu.ConfirmPending();
+            float t = Time.realtimeSinceStartup;
+            while (!SectionReloaded(levelBefore) && Time.realtimeSinceStartup - t < 10f) yield return null;
+            yield return 0.5f;
+            pause = Object.FindAnyObjectByType<PauseController>();
+            Check("Reiniciar confirmado recarga la sección sin quedar congelada",
+                Object.FindAnyObjectByType<LevelManager>() != levelBefore && Time.timeScale == 1f && !pause.IsPaused);
+
+            // La configuración persiste tras reiniciar.
+            GameSettings.Reload();
+            cam = Object.FindAnyObjectByType<GravityCamera>();
+            float pitch2 = cam.Pitch;
+            cam.AddLookInput(new Vector2(0f, 10f));
+            yield return null;
+            Check("la configuración persiste tras reiniciar (PlayerPrefs)", Mathf.Approximately(GameSettings.MouseSensitivity, 0.3f)
+                && GameSettings.InvertY && Mathf.Abs(cam.Pitch - pitch2 - 3f) < 0.05f);
+
+            // Retroceso reinicia al instante, sin confirmación.
+            var levelBeforeBackspace = Object.FindAnyObjectByType<LevelManager>();
+            yield return Press(Key.Backspace);
+            t = Time.realtimeSinceStartup;
+            while (!SectionReloaded(levelBeforeBackspace) && Time.realtimeSinceStartup - t < 10f) yield return null;
+            Check("Retroceso reinicia al instante sin confirmación", Object.FindAnyObjectByType<LevelManager>() != levelBeforeBackspace);
+            yield return 0.5f;
+
+            // Volver al menú pide confirmación y conserva el progreso.
+            pause = Object.FindAnyObjectByType<PauseController>();
+            menu = Object.FindAnyObjectByType<PauseMenuUI>();
+            int unlockedBefore = GameProgress.UnlockedSection;
+            yield return Press(Key.Escape);
+            menu.RequestExitToMenu();
+            yield return new Realtime(0.3f);
+            Check("Volver al menú pide confirmación y no sale todavía", menu.CurrentPanel == "Confirm" && SceneManager.GetActiveScene().name == "Level_01_DockingBay");
+            menu.ConfirmPending();
+            bool loaded = false;
+            yield return WaitForScene("MainMenu", 10f, r => loaded = r);
+            yield return 0.3f;
+            Check("Volver al menú confirmado carga el menú con el tiempo restaurado", loaded && Time.timeScale == 1f && Cursor.visible);
+            Check("volver al menú conserva las secciones completadas", GameProgress.UnlockedSection == unlockedBefore, $"unlocked={GameProgress.UnlockedSection}");
+        }
+
+        /// <summary>True cuando ya existe un LevelManager nuevo (la escena terminó de recargarse).</summary>
+        static bool SectionReloaded(LevelManager previous)
+        {
+            var current = Object.FindAnyObjectByType<LevelManager>();
+            return current != null && current != previous && Object.FindAnyObjectByType<GravityCamera>() != null;
+        }
+
+        static IEnumerator IntroTimeoutSuite()
+        {
+            suite = "HUD";
+            yield return LoadScene("Level_01_2_MaintenanceShaft");
+            var hud = Object.FindAnyObjectByType<LevelHUD>();
+            yield return 7f;
+            Check("con Kai quieto la introducción sigue visible a los 7 s", hud.Intro == LevelHUD.IntroState.Showing);
+            yield return 2f;
+            yield return new Realtime(0.3f);
+            Check("con Kai quieto la introducción se oculta tras 8 s", hud.Intro == LevelHUD.IntroState.Hidden, $"estado={hud.Intro}");
+        }
+
 
         // =====================================================================
         // Test_Gravity (regresión de mecánicas base)
