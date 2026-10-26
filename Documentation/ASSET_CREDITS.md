@@ -61,6 +61,23 @@ Los materiales, scripts, escenas y la configuración creados para Gravedad Cero 
 - El modelo se escala ×0.48 en el prefab `Kai_Model` (de 3.96 a 1.9 m). El FBX se mantiene a escala 1 para que el avatar sea válido.
 - El material compartido es `M_Kai` (URP Lit).
 
+## Tipografías
+
+| Fuente | Uso | Autor | Licencia | Origen | SHA-256 |
+|---|---|---|---|---|---|
+| **Orbitron** (variable, `Orbitron-Variable.ttf`, 38,576 bytes) | Títulos | The Orbitron Project Authors (Matt McInerney / The League of Moveable Type) | SIL Open Font License 1.1 | https://github.com/google/fonts/tree/main/ofl/orbitron | `f42db2dd16e642258e35782916eceb1dcdbea06fb958d77ad71dc5963587e8fd` |
+| **Exo 2** (variable, `Exo2-Variable.ttf`, 303,940 bytes) | Textos, botones e instrucciones | The Exo 2 Project Authors (Natanael Gama) | SIL Open Font License 1.1 | https://github.com/google/fonts/tree/main/ofl/exo2 | `205a448676a2586f9c57c25f3d5c58ca8db7e6cf5edf7506783a010c6fe2bfb5` |
+
+- **Fecha de incorporación:** 26-10-2026.
+- **Ubicación:** `Assets/GravedadCero/UI/Fonts/`, con su `*-OFL.txt`. La licencia OFL exige distribuirlas junto con su licencia.
+- **Fuentes TextMeshPro generadas:** `Assets/GravedadCero/UI/Resources/Fonts/` (`Exo2 SDF`, `Orbitron SDF`). Son atlas estáticos con ASCII y caracteres del español (á é í ó ú ñ ü ¿ ¡ · « » “ ” — …).
+- **Caracteres que faltan, comprobados con TextMeshPro:**
+  - Orbitron no tiene `^ · ‹ › « »`;
+  - ninguna de las dos tiene ✓ ● ▲ ▼ ◀ ▶ ↑ ↓ ← →.
+
+  Por eso las flechas, la marca de verificación, los puntos y el candado se dibujan como iconos generados por código (`UITheme`), y los títulos en Orbitron no usan esos signos.
+- **TextMeshPro Essential Resources:** se importaron del paquete `com.unity.ugui` ya instalado (Unity Technologies), sin descargar nada. Incluyen LiberationSans (SIL OFL 1.1), que se usa como fuente de respaldo.
+
 ## Pendientes
 
 Ningún otro recurso de terceros está incluido por ahora.
