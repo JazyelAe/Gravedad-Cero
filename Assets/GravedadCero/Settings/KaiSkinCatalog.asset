@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e77fe57eb5d0e644af54f96772a7bc7, type: 3}
+  m_Name: KaiSkinCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::GravedadCero.Player.SkinCatalog
+  skins:
+  - displayName: Ingeniero
+    material: {fileID: 2100000, guid: fb0cc62aa67372742ae95553b799c631, type: 2}
+  - displayName: "T\xE9cnico de carga"
+    material: {fileID: 2100000, guid: 6b9505d40eb251a439e08bd5751f1846, type: 2}
+  - displayName: Piloto
+    material: {fileID: 2100000, guid: 3ebea51f91a37ec419162bf8456114bb, type: 2}
+  - displayName: Cyborg
+    material: {fileID: 2100000, guid: 3844fcddda7a7a2419d7831056a7383b, type: 2}
+  - displayName: Skater
+    material: {fileID: 2100000, guid: dfbee7e82b58c2c40af16fc38c2c49ac, type: 2}

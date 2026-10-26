@@ -43,7 +43,17 @@ Los materiales, scripts, escenas y la configuración creados para Gravedad Cero 
 | Ubicación | `Assets/GravedadCero/Models/Kenney_Characters/` |
 | Licencia incluida | `Assets/GravedadCero/Models/Kenney_Characters/License.txt` |
 
-**Contenido incorporado:** el modelo con rig `characterMedium.fbx`, las animaciones `idle.fbx`, `run.fbx` y `jump.fbx`, y la skin `skaterMaleA.png`. Las otras tres skins, sus fuentes SVG y la imagen de vista previa no se incluyeron.
+**Contenido incorporado:** el modelo con rig `characterMedium.fbx`, las animaciones `idle.fbx`, `run.fbx` y `jump.fbx`, y las skins `skaterMaleA.png` y `cyborgFemaleA.png`. Esta última se añadió el 25-10-2026 desde el mismo zip. Las otras dos skins, las fuentes SVG y la imagen de vista previa no se incluyeron.
+
+**Skins disponibles en el juego** (`Settings/KaiSkinCatalog.asset`):
+
+| Skin | Textura | Origen |
+|---|---|---|
+| Ingeniero | `Kai_Engineer.png` | Derivada de `skaterMaleA.png` |
+| Técnico de carga | `Kai_Cargo.png` | Derivada de `skaterMaleA.png` |
+| Piloto | `Kai_Pilot.png` | Derivada de `skaterMaleA.png` |
+| Cyborg | `cyborgFemaleA.png` | Original de Kenney |
+| Skater | `skaterMaleA.png` | Original de Kenney |
 
 **Cambios respecto al original:**
 - `Skins/Kai_Engineer.png` es una **obra derivada** de `skaterMaleA.png`, recoloreada con la paleta del proyecto: traje blanco, pantalón gris oscuro, detalles y calzado cian. CC0 permite modificarla sin restricciones.
