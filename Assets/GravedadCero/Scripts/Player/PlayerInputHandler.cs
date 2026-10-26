@@ -10,9 +10,9 @@ namespace GravedadCero.Player
     /// <summary>
     /// Lee el mapa de acciones "Player" y lo traduce en órdenes para PlayerMotor y
     /// GravityCamera, Q/R/F para GravityController, E para PlayerInteractor, clic izquierdo
-    /// para GravitationalTool y Retroceso para reiniciar el nivel. Es el único script del
-    /// jugador que conoce el Input System. La acción de pausa existe en el mapa pero todavía
-    /// no se usa. Las referencias de herramienta y nivel son opcionales (Test_Gravity no las usa).
+    /// para GravitationalTool, Retroceso para reiniciar, Esc para volver al menú y Enter para
+    /// continuar tras completar la sección. Es el único script del jugador que conoce el
+    /// Input System. Las referencias de herramienta y nivel son opcionales (Test_Gravity no las usa).
     /// </summary>
     public class PlayerInputHandler : MonoBehaviour
     {
@@ -34,6 +34,8 @@ namespace GravedadCero.Player
         InputAction interactAction;
         InputAction anchorAction;
         InputAction restartAction;
+        InputAction menuAction;
+        InputAction confirmAction;
 
         void Awake()
         {
@@ -47,6 +49,8 @@ namespace GravedadCero.Player
             interactAction = playerMap.FindAction("Interact", throwIfNotFound: true);
             anchorAction = playerMap.FindAction("Anchor", throwIfNotFound: true);
             restartAction = playerMap.FindAction("Restart", throwIfNotFound: true);
+            menuAction = playerMap.FindAction("Pause", throwIfNotFound: true);
+            confirmAction = playerMap.FindAction("Confirm", throwIfNotFound: true);
         }
 
         void OnEnable()
@@ -65,15 +69,16 @@ namespace GravedadCero.Player
 
         void Update()
         {
-            if (levelManager != null && restartAction.WasPressedThisFrame())
+            if (levelManager != null)
             {
-                levelManager.Restart();
-                return;
+                if (restartAction.WasPressedThisFrame()) { levelManager.Restart(); return; }
+                if (menuAction.WasPressedThisFrame()) { levelManager.ExitToMenu(); return; }
+                if (levelManager.IsCompleted && confirmAction.WasPressedThisFrame()) { levelManager.Continue(); return; }
             }
 
             gravityCamera.AddLookInput(lookAction.ReadValue<Vector2>());
 
-            // Con el nivel completado solo se permite mirar y reiniciar.
+            // Con la sección completada solo se permite mirar, continuar, reiniciar o salir.
             if (levelManager != null && levelManager.IsCompleted)
             {
                 motor.SetMoveInput(Vector3.zero);

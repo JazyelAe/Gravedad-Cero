@@ -22,7 +22,13 @@ Aventura 3D de puzzles y plataformas en tercera persona, ambientada en la estaci
 
 ## Cómo jugar
 
-Abre `Assets/GravedadCero/Scenes/Level_01_DockingBay.unity` y pulsa **Play**. Es la primera escena de Build Settings. La solución del nivel está en [`Documentation/LEVEL_01.md`](Documentation/LEVEL_01.md).
+Abre `Assets/GravedadCero/Scenes/MainMenu.unity` y pulsa **Play**. Es la primera escena de Build Settings. Desde el menú:
+- **Nueva partida** empieza en la sección 1-1;
+- **Continuar** carga la última sección desbloqueada;
+- **Secciones** permite elegir entre las desbloqueadas;
+- **Personaje** cambia la skin de Kai.
+
+El progreso y la skin se guardan solos. Las soluciones están en [`Documentation/LEVEL_01.md`](Documentation/LEVEL_01.md).
 
 ## Controles
 
@@ -35,19 +41,24 @@ Abre `Assets/GravedadCero/Scenes/Level_01_DockingBay.unity` y pulsa **Play**. Es
 | F | Invertir la gravedad 180° |
 | Clic izquierdo | Anclar o soltar la caja que está bajo la mira, a 8 m como máximo |
 | E | Usar interruptores |
-| Retroceso (Backspace) | Reiniciar el nivel |
+| Retroceso (Backspace) | Reiniciar la sección |
+| Enter | Tras completar una sección, pasar a la siguiente |
+| Esc | Volver al menú principal |
 
 ## Escenas
 
 | Escena | Uso |
 |---|---|
-| `Level_01_DockingBay` | Primer nivel jugable: tutorial con un puzle de caja, gravedad y anclaje |
+| `MainMenu` | Menú principal con vista previa de Kai |
+| `Level_01_DockingBay` | Sección 1-1, Muelle de acoplamiento: caja, gravedad y anclaje |
+| `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: caminar por paredes y techo |
+| `Level_01_3_CargoLock` | Sección 1-3, Esclusa de carga: dos cajas y dos placas |
 | `Test_Gravity` | Escena de pruebas de movimiento, gravedad, puertas e interruptores |
 | `Showcase_Kenney` | Catálogo de las piezas del Space Station Kit |
 
 ## Estado de desarrollo
 
-Prototipo jugable del Nivel 1. El estado de cada tarea, separado entre implementado, probado automáticamente y pendiente de prueba manual, está en [`Documentation/TASKS.md`](Documentation/TASKS.md).
+Prototipo jugable del Sector 1, con tres secciones, menú principal, guardado de progreso y cinco skins. El estado de cada tarea, separado entre implementado, probado automáticamente y pendiente de prueba manual, está en [`Documentation/TASKS.md`](Documentation/TASKS.md).
 
 ## Licencias y créditos
 

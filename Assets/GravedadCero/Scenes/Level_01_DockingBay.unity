@@ -3123,7 +3123,6 @@ MonoBehaviour:
   levelManager: {fileID: 1643680676}
   gravitationalTool: {fileID: 1207444025}
   interactor: {fileID: 1207444024}
-  controlsText: "WASD mover \xB7 Espacio saltar \xB7 Q/R girar gravedad \xB7 F invertir \xB7 Clic anclar/soltar \xB7 E usar \xB7 Retroceso reiniciar"
 --- !u!4 &656230101
 Transform:
   m_ObjectHideFlags: 0
@@ -7149,9 +7148,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e7e2463a51766a4da74de78264e68d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GravedadCero.Level.LevelManager
-  levelTitle: "Sector 1 \xB7 M\xF3dulo de Acoplamiento"
+  levelTitle: "Sector 1-1 \xB7 Muelle de acoplamiento"
   objective: Abre la compuerta norte y llega a la salida.
   hint: "La placa de la pared este necesita peso. Lanza la caja con la gravedad y \xE1nclala."
+  sectionIndex: 0
+  nextScene: Level_01_2_MaintenanceShaft
+  menuScene: MainMenu
 --- !u!4 &1643680677
 Transform:
   m_ObjectHideFlags: 0

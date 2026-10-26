@@ -16,9 +16,8 @@ namespace GravedadCero.UI
         [SerializeField] LevelManager levelManager;
         [SerializeField] GravitationalTool gravitationalTool;
         [SerializeField] PlayerInteractor interactor;
-        [TextArea(1, 3)]
-        [SerializeField] string controlsText =
-            "WASD mover · Espacio saltar · Q/R girar gravedad · F invertir · Clic anclar/soltar · E usar · Retroceso reiniciar";
+        const string ControlsText =
+            "WASD mover · Espacio saltar · Q/R girar gravedad · F invertir · Clic anclar/soltar · E usar · Retroceso reiniciar · Esc menú";
 
         static readonly Color Cyan = new Color(0.45f, 0.9f, 1f);
         static readonly Color Amber = new Color(1f, 0.7f, 0.25f);
@@ -45,7 +44,7 @@ namespace GravedadCero.UI
             string objectiveText = levelManager != null ? $"{levelManager.LevelTitle}\n<b>Objetivo:</b> {levelManager.Objective}" : "";
             if (levelManager != null && !string.IsNullOrEmpty(levelManager.Hint)) objectiveText += $"\n<i>{levelManager.Hint}</i>";
             Label(root, "Objective", objectiveText, 26, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(40, -36), new Vector2(900, 160), Color.white);
-            Label(root, "Controls", controlsText, 20, TextAnchor.LowerLeft, new Vector2(0, 0), new Vector2(40, 30), new Vector2(1600, 40), Neutral);
+            Label(root, "Controls", ControlsText, 20, TextAnchor.LowerLeft, new Vector2(0, 0), new Vector2(40, 30), new Vector2(1600, 40), Neutral);
             crosshair = Label(root, "Crosshair", "+", 34, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60, 60), Neutral);
             prompt = Label(root, "Prompt", "", 28, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -70), new Vector2(800, 50), Cyan);
 
@@ -56,8 +55,11 @@ namespace GravedadCero.UI
             panelRect.anchorMax = Vector2.one;
             panelRect.offsetMin = panelRect.offsetMax = Vector2.zero;
             victoryPanel.GetComponent<Image>().color = new Color(0.02f, 0.04f, 0.07f, 0.75f);
-            Label(victoryPanel.transform, "Title", "SECTOR SUPERADO", 64, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1400, 90), Cyan);
-            Label(victoryPanel.transform, "Subtitle", "Pulsa Retroceso para jugar de nuevo", 28, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(1400, 50), Color.white);
+            bool hasNext = levelManager != null && levelManager.HasNext;
+            Label(victoryPanel.transform, "Title", hasNext ? "SECCIÓN SUPERADA" : "SECTOR COMPLETADO", 64, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1400, 90), Cyan);
+            Label(victoryPanel.transform, "Subtitle",
+                hasNext ? "Enter: siguiente sección · Retroceso: repetir · Esc: menú" : "Enter: menú principal · Retroceso: repetir",
+                28, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(1400, 50), Color.white);
             victoryPanel.SetActive(false);
         }
 
