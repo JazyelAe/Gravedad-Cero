@@ -30,6 +30,15 @@ namespace GravedadCero.Audio
         public AudioClip platePressed;
         public AudioClip switchUsed;
         public AudioClip respawn;
+        public AudioClip boxRespawn;
+        public AudioClip dataLog;
+
+        [Header("Drones y daño")]
+        public AudioClip droneHum;
+        public AudioClip droneAlert;
+        public AudioClip droneStunned;
+        public AudioClip playerHit;
+        public AudioClip steamVent;
 
         [Header("Interfaz")]
         public AudioClip uiMove;

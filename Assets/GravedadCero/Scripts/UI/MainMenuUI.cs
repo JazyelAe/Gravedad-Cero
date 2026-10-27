@@ -26,6 +26,8 @@ namespace GravedadCero.UI
             public string title;
             public string sceneName;
             [TextArea(1, 2)] public string description;
+            [Tooltip("Registros de datos escondidos en la sección (0 = no se muestra el contador).")]
+            public int dataLogs;
         }
 
         [SerializeField] Section[] sections = new Section[0];
@@ -263,6 +265,13 @@ namespace GravedadCero.UI
                 {
                     var icon = UIFactory.Image(t, "StateIcon", completed ? UITheme.Check : UITheme.Lock, stateColor, new Vector2(1, 1), new Vector2(-30, -16), new Vector2(24, 24));
                     icon.rectTransform.pivot = new Vector2(1, 1);
+                }
+                if (unlocked && sections[i].dataLogs > 0)
+                {
+                    int found = Mathf.Min(GameProgress.CountLogs(sections[i].sceneName + "/"), sections[i].dataLogs);
+                    var logs = UIFactory.Caps(t, "DataLogs", $"Registros {found}/{sections[i].dataLogs}", found == sections[i].dataLogs ? UITheme.Cyan : UITheme.TextSecondary, 15);
+                    logs.alignment = TextAlignmentOptions.MidlineRight;
+                    UIFactory.Place(logs.rectTransform, new Vector2(1, 0), new Vector2(-64, 12), new Vector2(220, 22), new Vector2(1, 0));
                 }
             }
             UIFactory.Button(panel, "Volver", () => ShowPanel("Main"), compact ? 60f : 68f);

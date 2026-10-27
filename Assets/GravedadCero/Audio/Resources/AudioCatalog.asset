@@ -34,5 +34,12 @@ MonoBehaviour:
   platePressed: {fileID: 8300000, guid: 61d0a3ae4e863724281409c3c99c56b2, type: 3}
   switchUsed: {fileID: 8300000, guid: a5f786bf91edc684e9bfa407083845ea, type: 3}
   respawn: {fileID: 8300000, guid: bf5280c54a0895349964b20a84939ef6, type: 3}
+  boxRespawn: {fileID: 8300000, guid: 97e357c2bfcf9e24496b0b91651b1152, type: 3}
+  dataLog: {fileID: 8300000, guid: 15ae5fb9c4b886042b454e203a6899e1, type: 3}
+  droneHum: {fileID: 8300000, guid: 7810657a80e445846a8636cb5b335054, type: 3}
+  droneAlert: {fileID: 8300000, guid: af96b80fa05b20648b9c6627c66b4ee7, type: 3}
+  droneStunned: {fileID: 8300000, guid: 72d56085874989c4b9df92825a4c0419, type: 3}
+  playerHit: {fileID: 8300000, guid: 9ec1ac44a3361884a963e8832892c794, type: 3}
+  steamVent: {fileID: 8300000, guid: 0bf6799aa3089ac498794923e13c8477, type: 3}
   uiMove: {fileID: 8300000, guid: 7fa42698c9ecdee4ea33c6433f821542, type: 3}
   uiClick: {fileID: 8300000, guid: b90a642629c6b15438f6f0bb5743ff4d, type: 3}

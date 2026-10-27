@@ -51,6 +51,7 @@ namespace GravedadCero.Player
         float lastGroundedTime = float.NegativeInfinity;
         float lastJumpRequestTime = float.NegativeInfinity;
         float lastJumpTime = float.NegativeInfinity;
+        float stunnedUntil = float.NegativeInfinity;
 
         public bool IsGrounded { get; private set; }
         public Vector3 GroundNormal { get; private set; }
@@ -90,6 +91,20 @@ namespace GravedadCero.Player
         public void RequestJump()
         {
             lastJumpRequestTime = Time.time;
+        }
+
+        /// <summary>True mientras dura un empujón: la entrada del jugador no cuenta.</summary>
+        public bool IsStunned => Time.time < stunnedUntil;
+
+        /// <summary>
+        /// Empuja a Kai (por ejemplo, al recibir un golpe). Durante stunSeconds no se aplica la
+        /// entrada del jugador, para que el empujón se note; después se recupera el control.
+        /// </summary>
+        public void Knockback(Vector3 velocity, float stunSeconds)
+        {
+            body.linearVelocity = velocity;
+            stunnedUntil = Time.time + stunSeconds;
+            lastJumpTime = Time.time; // despega del suelo sin quedarse pegado
         }
 
         void FixedUpdate()
@@ -176,11 +191,13 @@ namespace GravedadCero.Player
             Vector3 plane = GroundNormal;
             Vector3 planarVelocity = Vector3.ProjectOnPlane(body.linearVelocity, plane);
 
-            Vector3 desired = Vector3.ProjectOnPlane(moveInput, plane);
+            Vector3 input = IsStunned ? Vector3.zero : moveInput;
+            Vector3 desired = Vector3.ProjectOnPlane(input, plane);
             if (desired.sqrMagnitude > 1e-6f)
-                desired = desired.normalized * (moveInput.magnitude * moveSpeed);
+                desired = desired.normalized * (input.magnitude * moveSpeed);
 
-            float acceleration = IsGrounded ? groundAcceleration : airAcceleration;
+            // Durante un empujón se frena despacio, como en el aire.
+            float acceleration = IsGrounded && !IsStunned ? groundAcceleration : airAcceleration;
             Vector3 newPlanar = Vector3.MoveTowards(planarVelocity, desired, acceleration * Time.fixedDeltaTime);
             body.AddForce(newPlanar - planarVelocity, ForceMode.VelocityChange);
 

@@ -8,8 +8,10 @@ namespace GravedadCero.Player
     /// <summary>
     /// Red de seguridad: si Kai pasa demasiado tiempo sin tocar una superficie (por ejemplo,
     /// tras cambiar la gravedad hacia el vacío), se aleja demasiado o entra en una
-    /// HazardZone, vuelve a su punto de aparición con la gravedad inicial. Los puntos de
-    /// control (Checkpoint) cambian ese punto.
+    /// HazardZone, cae. Si alguien escucha Downed (la pantalla de derrota del HUD), Kai queda
+    /// detenido hasta que se elige Reintentar, que llama a Respawn; si no (por ejemplo, en
+    /// Test_Gravity), vuelve al instante a su punto de aparición con la gravedad inicial. Los
+    /// puntos de control (Checkpoint) cambian ese punto.
     /// </summary>
     [RequireComponent(typeof(Rigidbody), typeof(PlayerMotor))]
     public class FallRecovery : MonoBehaviour
@@ -26,6 +28,14 @@ namespace GravedadCero.Player
         Quaternion spawnRotation;
         float airTime;
 
+        public enum Cause { Fall, Hazard, Integrity }
+
+        /// <summary>True desde que Kai cae hasta que reaparece.</summary>
+        public bool IsDown { get; private set; }
+
+        /// <summary>Se lanza cuando Kai cae, con la causa. Quien lo escucha decide cuándo reaparecer.</summary>
+        public event Action<Cause> Downed;
+
         void Awake()
         {
             body = GetComponent<Rigidbody>();
@@ -40,16 +50,17 @@ namespace GravedadCero.Player
 
         void FixedUpdate()
         {
+            if (IsDown) return;
             airTime = motor.IsGrounded ? 0f : airTime + Time.fixedDeltaTime;
 
             bool fellTooLong = airTime > maxAirTime;
             bool tooFar = (body.position - spawnPosition).sqrMagnitude > maxDistanceFromSpawn * maxDistanceFromSpawn;
-            if (fellTooLong || tooFar) Respawn();
+            if (fellTooLong || tooFar) Fail(Cause.Fall);
         }
 
         void OnTriggerEnter(Collider other)
         {
-            if (other.GetComponent<HazardZone>() != null) Respawn();
+            if (other.GetComponent<HazardZone>() != null) Fail(Cause.Hazard);
         }
 
         /// <summary>Cambia el punto de reaparición (lo usan los puntos de control).</summary>
@@ -62,9 +73,26 @@ namespace GravedadCero.Player
         /// <summary>Se lanza cada vez que Kai reaparece (en el inicio o en el último punto de control).</summary>
         public event Action Respawned;
 
+        /// <summary>
+        /// Kai cae (vacío, zona peligrosa o traje destruido). Con pantalla de derrota se queda
+        /// quieto donde está hasta Respawn; sin ella, reaparece al instante.
+        /// </summary>
+        public void Fail(Cause cause)
+        {
+            if (IsDown) return;
+            if (Downed == null) { Respawn(); return; }
+            IsDown = true;
+            body.linearVelocity = Vector3.zero;
+            body.isKinematic = true;
+            motor.SetMoveInput(Vector3.zero);
+            Downed.Invoke(cause);
+        }
+
         public void Respawn()
         {
             if (gravityController != null) gravityController.ResetGravity();
+            IsDown = false;
+            body.isKinematic = false;
 
             body.linearVelocity = Vector3.zero;
             body.position = spawnPosition;

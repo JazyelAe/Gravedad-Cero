@@ -1,3 +1,4 @@
+using GravedadCero.Enemies;
 using GravedadCero.Gravity;
 using GravedadCero.Interaction;
 using GravedadCero.Level;
@@ -14,7 +15,7 @@ namespace GravedadCero.Audio
     /// cambios de escena, así que la música no se corta: al cargar una escena hace un fundido
     /// cruzado hacia su pista (o sigue con la misma si no cambia). Escucha los eventos de los
     /// componentes de la escena (gravedad, anclaje, puertas, placas, interruptores, puntos de
-    /// control, reaparición, pausa y victoria); ninguno de ellos conoce el audio. Usa tiempo no
+    /// control, registros, drones, golpes, reaparición, pausa y victoria); ninguno de ellos conoce el audio. Usa tiempo no
     /// escalado, así que funciona en pausa.
     /// </summary>
     public class GameAudio : MonoBehaviour
@@ -138,6 +139,43 @@ namespace GravedadCero.Audio
         }
 
         /// <summary>Se suscribe a los eventos de los componentes de la escena recién cargada.</summary>
+        /// <summary>Zumbido 3D en el propio dron y avisos al detectar a Kai o quedar aturdido.</summary>
+        void BindDrone(SecurityDrone drone)
+        {
+            var hum = drone.gameObject.AddComponent<AudioSource>();
+            hum.clip = catalog.droneHum;
+            hum.loop = true;
+            hum.spatialBlend = 1f;
+            hum.rolloffMode = AudioRolloffMode.Linear;
+            hum.minDistance = 2f;
+            hum.maxDistance = 18f;
+            hum.volume = 0.35f * GameSettings.SfxVolume;
+            if (hum.clip != null) hum.Play();
+            drone.StateChanged += (d, state) =>
+            {
+                if (state == SecurityDrone.State.Alert) Play(catalog.droneAlert, 0.7f);
+                if (state == SecurityDrone.State.Stunned) Play(catalog.droneStunned, 0.8f);
+                hum.pitch = state == SecurityDrone.State.Chase ? 1.25f : 1f;
+                hum.volume = (state == SecurityDrone.State.Stunned ? 0f : 0.35f) * GameSettings.SfxVolume;
+            };
+        }
+
+        /// <summary>Silbido 3D en la propia ventila cada vez que se enciende.</summary>
+        void BindVent(TimedHazard vent)
+        {
+            var source = vent.gameObject.AddComponent<AudioSource>();
+            source.spatialBlend = 1f;
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.minDistance = 3f;
+            source.maxDistance = 22f;
+            source.playOnAwake = false;
+            vent.PhaseChanged += (v, phase) =>
+            {
+                if (phase == TimedHazard.Phase.On && catalog.steamVent != null && Time.unscaledTime - loadedAt >= SilenceAfterLoad)
+                    source.PlayOneShot(catalog.steamVent, 0.55f * GameSettings.SfxVolume);
+            };
+        }
+
         void BindScene()
         {
             foreach (var gravity in FindObjectsByType<GravityController>())
@@ -151,9 +189,17 @@ namespace GravedadCero.Audio
             foreach (var interactor in FindObjectsByType<PlayerInteractor>())
                 interactor.Interacted += _ => Play(catalog.switchUsed);
             foreach (var recovery in FindObjectsByType<FallRecovery>())
-                recovery.Respawned += () => Play(catalog.respawn, 0.9f);
+                recovery.Downed += _ => Play(catalog.respawn, 0.9f);
             foreach (var checkpoint in FindObjectsByType<Checkpoint>())
                 checkpoint.Reached += _ => Play(catalog.switchUsed, 0.8f);
+            foreach (var log in FindObjectsByType<DataLog>())
+                log.Collected += _ => Play(catalog.dataLog);
+            foreach (var box in FindObjectsByType<AnchorableBody>())
+                box.Respawned += _ => Play(catalog.boxRespawn, 0.8f);
+            foreach (var health in FindObjectsByType<PlayerHealth>())
+                health.Damaged += _ => Play(catalog.playerHit);
+            foreach (var drone in FindObjectsByType<SecurityDrone>()) BindDrone(drone);
+            foreach (var vent in FindObjectsByType<TimedHazard>()) BindVent(vent);
             foreach (var pause in FindObjectsByType<PauseController>())
                 pause.PauseChanged += paused => duckTarget = paused ? PausedMusicLevel : 1f;
             foreach (var level in FindObjectsByType<LevelManager>())

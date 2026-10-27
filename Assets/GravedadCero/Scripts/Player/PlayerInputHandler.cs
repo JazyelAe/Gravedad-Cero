@@ -42,8 +42,14 @@ namespace GravedadCero.Player
         InputAction menuAction;
         InputAction confirmAction;
 
+        FallRecovery recovery;
+
+        /// <summary>Lo asigna la pantalla de derrota: lo que hace Enter sin botón resaltado.</summary>
+        public static System.Action DefeatRetry { get; set; }
+
         void Awake()
         {
+            recovery = GetComponent<FallRecovery>();
             playerMap = actions.FindActionMap("Player", throwIfNotFound: true);
             moveAction = playerMap.FindAction("Move", throwIfNotFound: true);
             lookAction = playerMap.FindAction("Look", throwIfNotFound: true);
@@ -88,6 +94,15 @@ namespace GravedadCero.Player
                 {
                     if (pauseController != null) pauseController.RestartSection();
                     else levelManager.Restart();
+                    return;
+                }
+                // Con Kai caído: Esc vuelve al menú y Enter reintenta (si no hay un botón
+                // resaltado, que lo pulsa la interfaz); Retroceso ya reinicia arriba.
+                if (recovery != null && recovery.IsDown)
+                {
+                    if (menuAction.WasPressedThisFrame()) levelManager.ExitToMenu();
+                    else if (confirmAction.WasPressedThisFrame() && !UIHasSelection() && DefeatRetry != null) DefeatRetry();
+                    motor.SetMoveInput(Vector3.zero);
                     return;
                 }
                 if (menuAction.WasPressedThisFrame())
