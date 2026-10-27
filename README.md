@@ -52,6 +52,14 @@ La pausa muestra también el objetivo y la pista de la sección.
 
 Al empezar cada sección aparece una tarjeta con el nombre, el objetivo, la pista y los controles esenciales. Se desvanece cuando Kai empieza a moverse o a los 8 segundos.
 
+**Ventilas de vapor (1-2):** se encienden a intervalos fijos; un parpadeo ámbar avisa antes de cada encendido. Solo son peligrosas encendidas.
+
+**Drones de seguridad (1-1 y 1-2):** patrullan una zona; si ven a Kai se ponen en alerta y lo persiguen. Cada golpe quita una de las 3 unidades de **integridad del traje** (abajo a la izquierda); sin integridad, Kai reaparece en el último punto de control. Subir a paredes, pasarelas o techo deja a Kai fuera de su alcance, y una caja que cae sobre un dron lo aturde.
+
+**Registros de datos:** objetos luminosos escondidos en rutas alternativas. Se guardan y el menú de secciones muestra cuántos hay encontrados.
+
+**Pantalla de derrota:** al caer al vacío o al fondo de un pozo, tocar una zona roja o el vapor, o perder toda la integridad del traje, el juego se detiene y aparece la pantalla de derrota (HAS CAÍDO, ZONA PELIGROSA o TRAJE DESTRUIDO) con Reintentar (desde el último punto de control), Reiniciar sección y Menú principal. Funciona con el mouse y con Enter, Retroceso y Esc.
+
 **Pantalla de victoria:** botones Continuar, Repetir sección y Menú principal, que se pueden pulsar con el mouse o elegir con flechas y Enter. Retroceso repite la sección y Esc vuelve al menú.
 
 ## Interfaz
@@ -72,7 +80,7 @@ Los textos usan TextMeshPro, con Orbitron para los títulos y Exo 2 para el rest
 |---|---|
 | `MainMenu` | Menú principal con vista previa de Kai |
 | `Level_01_DockingBay` | Sección 1-1, Muelle de acoplamiento: caja, gravedad y anclaje, en dos salas |
-| `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: caminar por paredes y techo, en dos pozos |
+| `Level_01_2_MaintenanceShaft` | Sección 1-2, Pozo de mantenimiento: pozo vertical de 48 m que se baja por las paredes, con ventilas de vapor |
 | `Level_01_3_CargoLock` | Sección 1-3, Esclusa de carga: dos esclusas, placas en paredes, techo y suelo |
 | `Level_01_4_RotationRing` | Sección 1-4, Anillo de rotación: franjas peligrosas en suelo, pared y techo |
 | `Level_01_5_Core` | Sección 1-5, Núcleo del reactor: la gravedad también apunta al norte |
@@ -90,6 +98,8 @@ Las pruebas de regresión recorren en Play Mode el menú, las cinco secciones (r
   ```
 
 El resultado queda en `Logs/RegressionReport.txt`. Las pruebas simulan al jugador por código, sin teclado ni mouse reales, y restauran el progreso guardado al terminar.
+
+**Constructor de niveles:** `Assets/GravedadCero/Editor/LevelBuilding/` (solo editor). `LevelKit` tiene las piezas (salas cerradas, paredes con puertas, andenes, pasarelas, mecanismos, drones, registros) `Level01Builder` y `Level02Builder` generan las secciones 1-1 y 1-2: menú **Gravedad Cero → Niveles → Reconstruir 1-1 / 1-2**, o `-executeMethod GravedadCero.EditorTools.Level0XBuilder.RunFromCommandLine`. Conserva Kai, cámara, HUD y pausa, y rehace la geometría y los puzles.
 
 **Capturas de interfaz:** menú **Gravedad Cero → Capturas de interfaz**, o `-executeMethod GravedadCero.Tests.UIScreenshotRunner.RunFromCommandLine`, sin `-nographics`. Captura el menú, el HUD, la pausa y la victoria a 1280×720, 1920×1080, 2560×1080 y 1024×768 en `Logs/UIScreens/`. El informe `report.txt` señala los textos que no caben en su recuadro o se salen de la pantalla.
 

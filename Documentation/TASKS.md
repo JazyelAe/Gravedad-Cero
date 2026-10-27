@@ -35,6 +35,13 @@ Estados:
 | N2.1 | Segunda sala en 1-1 (placa alta), 1-2 (pozo con dos interruptores) y 1-3 (placa en el techo y en el suelo) | Fase 2, etapa de niveles | Sí | Sí: cada sala se resuelve en la regresión | **Pendiente** |
 | N2.2 | Secciones nuevas 1-4 (Anillo de rotación, franjas peligrosas) y 1-5 (Núcleo, gravedad hacia el norte); menú con 5 secciones | Fase 2, etapa de niveles | Sí | Sí: 1-4 y 1-5 resueltas en la regresión | **Pendiente** |
 | N2.3 | Puntos de control (`Checkpoint`), aviso en el HUD; `SignalLatch` y `ActivationGate` con interruptores | Fase 2, etapa de niveles | Sí | Sí: reaparición en cada punto de control | **Pendiente** |
+| L1.1 | Rediseño de 1-1: esclusa, muelle con andén y pasarela secreta, hangar de 36×32×16 m con contenedores, pasarelas y grúa; constructor permanente (`LevelKit`, `Level01Builder`) | Fase B (sin commit) | Sí | Sí: la regresión recorre y resuelve la sección entera | **Pendiente** |
+| E.1 | Dron de seguridad (`SecurityDrone`): patrulla, detección por distancia y visión, alerta, persecución en su zona, golpe, retirada, aturdido por cajas; inmune a la gravedad | Fase B (sin commit) | Sí | Sí: 9 comprobaciones | **Pendiente**: sensación al jugar |
+| E.2 | Integridad del traje (`PlayerHealth`, 3 golpes, empujón e invulnerabilidad) con barra en el HUD; reaparición con el traje reparado | Fase B (sin commit) | Sí | Sí | **Pendiente** |
+| E.3 | Cajas que vuelven a su sitio al caer en zonas rojas; registros de datos guardados y contados en el menú; placas de 1-3 y 1-5 dentro de contenedores abiertos | Fase B (sin commit) | Sí | Sí | **Pendiente** |
+| L2.1 | Rediseño de 1-2: galería con foso que se cruza por el techo y pozo vertical de 20×16×48 m con tres descansillos, plataforma suspendida secreta, dos válvulas, dron y refrigerante; constructor `Level02Builder` | Fase C (sin commit) | Sí | Sí: la regresión baja y resuelve el pozo entero (30 comprobaciones) | **Pendiente** |
+| L2.2 | Ventilas de vapor intermitentes (`TimedHazard`): apagado, aviso ámbar y encendido; sonido 3D | Fase C (sin commit) | Sí | Sí: se cruza apagada y devuelve al punto de control encendida | **Pendiente** |
+| UI.4 | Pantalla de derrota (caída, zona peligrosa, traje destruido): detiene el juego; Reintentar, Reiniciar sección y Menú con mouse y teclado | Fase C (sin commit) | Sí | Sí: suite Derrota con teclado virtual y en cada caída de las secciones | **Pendiente** |
 | T.2 | Capturas de interfaz con revisión automática de textos (`Tests/Editor/UIScreenshotRunner.cs`) | `f5d15b4` | Sí | No aplica | No aplica |
 
 ## Rediseño visual, fase 1 (26-10-2026)

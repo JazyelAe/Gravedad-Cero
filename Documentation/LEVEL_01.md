@@ -4,13 +4,15 @@ El Sector 1 tiene cinco secciones, cada una en su propia escena y de dificultad 
 
 | Sección | Escena | Enseña |
 |---|---|---|
-| 1-1 Muelle de acoplamiento | `Level_01_DockingBay` | Gravedad, física de las cajas y anclaje; en la sala 2, el orden de los giros importa |
-| 1-2 Pozo de mantenimiento | `Level_01_2_MaintenanceShaft` | Caminar por paredes y techo; en el pozo 2, dos interruptores en superficies distintas |
+| 1-1 Muelle de acoplamiento | `Level_01_DockingBay` | Gravedad, cajas y anclaje en un muelle de carga y un hangar; primer dron de seguridad y un registro secreto |
+| 1-2 Pozo de mantenimiento | `Level_01_2_MaintenanceShaft` | Pozo vertical de 48 m: bajar por las paredes, ventilas de vapor intermitentes, dos válvulas, un dron y un registro secreto |
 | 1-3 Esclusa de carga | `Level_01_3_CargoLock` | Una caja anclada y otra que se sostiene por su peso; en la esclusa 2, una placa en el techo |
 | 1-4 Anillo de rotación | `Level_01_4_RotationRing` | Recorrer suelo, pared y techo esquivando franjas peligrosas |
 | 1-5 Núcleo del reactor | `Level_01_5_Core` | La gravedad también apunta al norte o al sur (girando mirando a una pared lateral) |
 
-**Puntos de control:** al entrar en ellos, por cualquier superficie, aparece el aviso "Punto de control" y Kai pasa a reaparecer allí, con la gravedad normal, al caer o tocar una zona roja. Retroceso sigue reiniciando la sección entera. Las cajas no vuelven a su sitio al reaparecer; si una queda inalcanzable, hay que reiniciar con Retroceso.
+**Cajas:** si una caja cae en una zona roja, vuelve sola a su posición inicial.
+
+**Puntos de control:** al entrar en ellos, por cualquier superficie, aparece el aviso "Punto de control". Al caer, tocar una zona roja o perder el traje aparece la pantalla de derrota; **Reintentar** devuelve a Kai al último punto de control, con la gravedad normal. Retroceso sigue reiniciando la sección entera. Las cajas no vuelven a su sitio al reaparecer; si una queda inalcanzable, hay que reiniciar con Retroceso.
 
 **La gravedad es global:** cada giro mueve todas las cajas sueltas de la sección, también las de la sala siguiente. Las salas están pensadas para que eso no resuelva la siguiente por adelantado.
 
@@ -18,79 +20,133 @@ El Sector 1 tiene cinco secciones, cada una en su propia escena y de dificultad 
 
 # Sección 1-1: Muelle de acoplamiento (`Level_01_DockingBay`)
 
-Sección tutorial. Enseña a combinar tres mecánicas: el cambio de gravedad, la física de las cajas y el anclaje.
+Zona industrial de carga en cuatro partes, de 36 × 76 m y hasta 16 m de alto. Enseña las mecánicas de forma gradual y presenta el primer dron de seguridad. Se genera con `Assets/GravedadCero/Editor/LevelBuilding/Level01Builder.cs` (menú **Gravedad Cero → Niveles → Reconstruir 1-1**).
 
-## Objetivo
+**Objetivo:** abrir el muelle y la grúa del hangar, y llegar a la sala de control.
 
-Abrir la compuerta norte y llegar a la zona de salida luminosa de la sala del fondo.
+```
+            z=76 ┌────────────┐
+                 │ D: CONTROL │  salida
+            z=68 └────┤▓├─────┘  compuerta C (la abre la grúa)
+ ┌───────────────────────────────────────────┐
+ │═══ pasarela oeste, y = 8 ═════ pasarela este │  C: HANGAR (36 × 32 × 16 m)
+ │ ▓▓  ▓▓   ┊  ◇ → → → ◇  ┊   ▓▓  ▓▓       [G]│  [G] pinza de la grúa (placa, y 12.5–15.9)
+ │ [2] ▓▓   ┊  pasillo del ┊   ▓▓  ▓▓       [G]│  ◇ dron: z 42–62, por debajo de 6.5 m
+ │ ▓▓  ▓▓   ┊     dron     ┊   ▓▓  ▓▓         │  [2] caja sobre un contenedor
+ │      CP Hangar (z 38.5), zona segura z < 42 │  CP Compuerta (z 64.5), zona segura z > 62
+ └────────────────────┤▓├──────────────────────┘ z=36  compuerta B
+    ┌─────────────────────────────────────┐
+    │ ═ pasarela norte y = 8 → ✦ registro  │  B: MUELLE (28 × 24 × 12 m)
+    │ ╔══════╗                    [P]      │  [P] báscula del montacargas (pared este)
+    │ ║ [1]  ║ andén, y = 2.4             │  [1] caja del andén
+    │ ╚══════╝   ▫ maquinaria             │  CP Muelle (z 13.5)
+    └─────────────────┤ ├─────────────────┘ z=12
+              ┌──────────────┐
+              │ ▪  paso  ▪   │  A: ESCLUSA (12 × 12 × 8 m), escalones de 1.2 m
+              │      ▲ Kai   │
+              └──────────────┘ z=0
+```
 
-## Distribución
+## A: esclusa de entrada (`z = 0..12`)
 
-| Zona | Posición aproximada | Contenido |
-|---|---|---|
-| Inicio | Extremo sur, `(0, 0, 2)` | Kai aparece mirando al norte |
-| Sala principal | 12 × 28 m, 8 m de alto, con techo | Recinto cerrado: un cambio de gravedad siempre lleva a una superficie |
-| Plataforma de carga | Lado oeste, `z = 16`, 2.4 m de alto | La caja de carga. Kai no la alcanza saltando, porque su salto llega a 1.4 m |
-| Placa de presión | Pared este, `z = 16`, de 1.6 a 7.9 m de altura | Marco ámbar que se vuelve cian cuando tiene peso encima |
-| Compuerta norte | `(0, 0, 26)` | Se abre mientras la placa está presionada |
-| Sala de salida | Detrás de la compuerta | Zona cian en el piso: al entrar, el nivel se completa |
+Dos escalones de 1.2 m a los lados del paso central: se pueden saltar o rodear.
 
-## Solución
+## B: muelle de carga (`z = 12..36`)
 
-1. Camina hacia el norte, sin girar a Kai, hasta la altura de la plataforma.
-2. Pulsa **R**. La gravedad pasa a apuntar a la derecha de Kai (el este). La caja sale de la plataforma, cae sobre la placa de la pared este y la compuerta se abre. Kai también cae sobre esa pared.
-3. Camina por la pared este hasta tener la caja a menos de 8 m, apúntala con la mira (el indicador muestra `[Clic] Anclar caja`) y haz **clic**. La caja queda anclada y brilla en cian.
-4. Devuelve la gravedad al piso con **Q** o **R**, según hacia dónde mire Kai. La caja anclada sigue sobre la placa y la compuerta sigue abierta.
-5. Cruza la compuerta 1 y entra en la sala 2 (punto de control).
+| Elemento | Detalle |
+|---|---|
+| Andén de carga | Lado oeste, 2.4 m de alto: Kai no llega saltando. La caja está encima (`z = 24`) |
+| Báscula del montacargas | Placa en la pared este, de 2 a 7.5 m. Abre la compuerta B |
+| Pasarela norte | A 8 m, a lo largo de la pared norte. Al final hay un **registro de datos** |
 
-**Si no se ancla la caja**, al volver la gravedad la caja cae al suelo, la placa se libera y la compuerta se cierra. No hay forma de volver a subir la caja a la plataforma, así que hay que reiniciar con **Retroceso**.
+1. Pulsa **R** mirando al norte: la caja vuela del andén a la báscula (y Kai cae a la pared este). La compuerta B se abre.
+2. Camina por la pared hasta la caja y **ánclala**. Vuelve al suelo con **Q** o **R**.
+3. **Ruta alternativa:** gira la gravedad hacia la pared oeste, sube por ella por encima de la pasarela norte y vuelve al suelo: caes sobre la pasarela. Al final está el registro.
 
-## Reglas de los mecanismos
+La caja, al salir del borde del andén, se eleva un poco en el vuelo: por eso la báscula llega hasta 7.5 m.
 
-- **Placa de presión:** cuenta solo objetos anclables (cajas). Kai no la activa.
-- **Anclaje:** se puede tener una caja anclada a la vez. Una caja anclada no se mueve con ningún cambio de gravedad. Al soltarla, cae según la gravedad que haya en ese momento.
-- **Selección:** el rayo sale del centro de la cámara. Una pared entre la cámara y la caja, o entre Kai y la caja, impide seleccionarla.
-- **Caídas largas:** si Kai pasa más de 4 s en el aire, reaparece en el inicio con la gravedad normal. La caja no se reinicia.
+## C: hangar (`z = 36..68`)
 
-## Sala 2: Bodega alta (`z = 26..50`)
+| Elemento | Detalle |
+|---|---|
+| Contenedores | Bloques a los dos lados del pasillo central: cortan la línea de visión del dron |
+| Dron de seguridad | Patrulla el pasillo central (`z = 42..62`, hasta 6.5 m de alto). Fuera de esa zona no ve a Kai |
+| Pasarelas altas | A 8 m en las paredes oeste y este: ruta por encima del dron |
+| Caja del hangar | Sobre un contenedor del lado oeste (`z = 52`) |
+| Pinza de la grúa | Placa en lo alto de la pared este (12.5–15.9 m). Abre la compuerta C |
 
-La placa está en la pared este, **entre 5.3 y 7.9 m de altura**. Si se lanza la caja al este desde el suelo, llega a la pared a 0.7 m y no la toca.
+1. Al entrar (zona segura), observa la ruta del dron. Cruza escondiéndote tras los contenedores o sube a las paredes, las pasarelas o el techo: ahí el dron no llega.
+2. Pulsa **F**: la caja (y Kai) suben al techo.
+3. Gira la gravedad hacia el **este**: la caja se desliza por el techo, entre los raíles de la grúa, hasta la pinza. La compuerta C se abre.
+4. Ancla la caja (se suelta la del muelle, que ya no hace falta), vuelve al suelo y cruza la compuerta C.
 
-1. Pulsa **F**: la caja (y Kai) suben al techo.
-2. Gira la gravedad hacia el este con **Q** o **R** (según hacia dónde mire Kai). La caja se desliza desde el techo hasta la pared, a la altura de la placa, y la compuerta 2 se abre.
-3. Ancla la caja con clic. Anclarla suelta la caja de la sala 1, que ya no hace falta.
-4. Vuelve al suelo, cruza la compuerta 2 y entra en la zona de salida.
+**Dron:**
+- Cian: patrulla. Ámbar: te ha visto (medio segundo de aviso). Rojo: te persigue, más despacio que Kai.
+- Al tocar a Kai le quita una unidad de **integridad del traje** (hay 3), lo empuja y se retira. Kai es invulnerable 1.5 s.
+- Si pierde de vista a Kai 2.5 s, vuelve a su ruta.
+- Una caja que lo golpea con fuerza lo **aturde** 4 s.
+- La gravedad no le afecta: flota con imanes y nunca sale de su zona.
+
+Sin integridad, Kai reaparece en el último punto de control con el traje reparado.
+
+## D: sala de control (`z = 68..76`)
+
+La zona de salida completa la sección.
 
 ---
 
 # Sección 1-2: Pozo de mantenimiento (`Level_01_2_MaintenanceShaft`)
 
-**Objetivo:** cruzar el pozo y abrir la compuerta norte.
+Estructura vertical: una galería de servicio y un pozo de 20 × 16 m y 48 m de profundidad, con refrigerante en el fondo. Se baja caminando por las paredes y volviendo a la gravedad normal sobre cada descansillo. Se genera con `Editor/LevelBuilding/Level02Builder.cs` (menú **Gravedad Cero → Niveles → Reconstruir 1-2**).
 
-| Zona | Contenido |
-|---|---|
-| Inicio | Extremo sur. Kai aparece mirando al norte |
-| Pozo | `z = 14..26`, 8 m de profundidad, con bordes ámbar. El fondo rojo es una `HazardZone`: tocarlo devuelve a Kai al inicio |
-| Otro lado | Suelo de `z = 26` a `z = 42`, con un interruptor **en el techo** (`z = 36`, marcado en ámbar) |
-| Compuerta norte | `z = 42`. La abre el interruptor del techo |
+**Objetivo:** bajar hasta la sala de bombas y abrir sus dos válvulas.
 
-**Solución:**
-1. Desde el inicio, mirando al norte, pulsa **R**: Kai cae sobre la pared este.
-2. Camina por la pared hacia el norte hasta pasar el borde ámbar del otro lado del pozo.
-3. Pulsa **Q**, si sigues mirando al norte, para volver al suelo.
-4. Pulsa **F**: Kai sube al techo. Camina hasta el interruptor y pulsa **E**.
-5. Pulsa **F** para volver al suelo y cruza la compuerta 1.
+```
+ Vista lateral (oeste ← → este)                     y
+ ┌──────────────── techo del pozo ───────────────┐  +8   ◇ marca ámbar: encima de la plataforma
+ │▓ plataforma superior (CP) ▓  ← compuerta      │   0   (desde la galería)
+ │                                  ≋ vapor este  │  -7
+ │                              ▓▓ descansillo E  │ -14   válvula 1, CP
+ │ ═ tuberías                                     │ -16
+ │ ◉ válvula 2   ▓ plataforma ▓   ◇ dron          │ -20   registro en la plataforma
+ │ ≋ vapor oeste                                  │ -23
+ │ ▓▓ descansillo O (CP)                          │ -28
+ │          ═ tuberías y ≋ vapor (pared norte)    │ -29…-31
+ │        ▓▓▓ cornisa (CP) → sala de bombas       │ -36
+ └────────────── refrigerante (rojo) ─────────────┘ -40
+```
 
-Saltar no basta para cruzar: el pozo mide 12 m y el salto horizontal llega a unos 5 m.
+## Galería de servicio (`z = -20..0`)
 
-## Pozo 2 (`z = 42..78`)
+Un foso de 8 m corta la galería; la compuerta del pozo se abre con un interruptor **en el techo**, sobre el foso.
 
-Repisa con punto de control (`z = 42..46`), pozo de 20 m (`z = 46..66`) y suelo hasta la compuerta 2 (`z = 78`). La compuerta 2 se abre con **dos** interruptores de un solo uso (una `ActivationGate` con dos `SignalLatch`): uno en la **pared este** (`z = 52`, a 2.5 m de altura) y otro en el **techo** (`z = 62`).
+1. Pulsa **F**, camina por el techo hasta el interruptor (marca ámbar) y pulsa **E**.
+2. Vuelve al suelo con **F** pasado el foso y entra en el pozo.
 
-1. Desde la repisa, mirando al norte, pulsa **R** y camina por la pared este hasta el interruptor; pulsa **E**.
-2. Sigue mirando al norte y pulsa **R** otra vez: Kai cae al techo, sobre el pozo.
-3. Camina por el techo hasta el segundo interruptor y pulsa **E**. La compuerta 2 se abre.
-4. Pasado el borde ámbar del otro lado, pulsa **F** para volver al suelo y sal.
+## Pozo (`z = 0..16`, de `y = -40` a `y = 8`)
+
+| Elemento | Altura | Detalle |
+|---|---|---|
+| Plataforma superior | 0 | Punto de control. Barandilla hacia el pozo |
+| Ventila este | -7 | Vapor intermitente en toda la pared este (apagado 2.2 s, aviso 0.7 s, encendido 1.8 s) |
+| Descansillo este | -14 | Válvula 1 y punto de control |
+| Tuberías oeste | -16 | Tumbadas en la pared oeste: hay que saltarlas al bajar por ella |
+| Plataforma suspendida | -20 | En el centro. Solo se llega desde el techo. Tiene un **registro de datos** |
+| Válvula 2 | -20 | En la pared oeste |
+| Dron | -25 a -15 | Vigila la parte central; los descansillos quedan fuera de su zona |
+| Ventila oeste | -23 | Desfasada respecto a la este |
+| Descansillo oeste | -28 | Punto de control |
+| Tuberías y ventila norte | -29 y -31 | En la pared norte, sobre la cornisa |
+| Cornisa | -36 | Punto de control y compuerta de la sala de bombas (se abre con las dos válvulas) |
+
+1. Desde la plataforma superior, mirando al norte, pulsa **R**: Kai cae a la pared este. Baja por ella cruzando la ventila cuando esté apagada.
+2. Encima del descansillo este, vuelve a la gravedad normal (Q o R) y gira la **válvula 1** con **E**.
+3. Gira la gravedad hacia el **oeste**: Kai cruza el pozo hasta la pared oeste. Baja (salta las tuberías) hasta la **válvula 2** y úsala; el dron vigila esta zona.
+4. Pasa la ventila oeste y, encima del descansillo oeste, vuelve a la gravedad normal.
+5. Gira la gravedad hacia el **norte**: Kai cruza a la pared norte. Baja saltando las tuberías y esquivando el vapor, y sobre la cornisa vuelve a la gravedad normal.
+6. Cruza la compuerta de la sala de bombas.
+
+**Ruta secreta:** desde la plataforma superior o un descansillo, sube al techo del pozo (**F**), camina hasta la marca ámbar del centro y vuelve a pulsar **F**: Kai cae 28 m sobre la plataforma suspendida y su registro. Fallar el salto lleva al refrigerante.
 
 ---
 
@@ -118,7 +174,7 @@ Repisa con punto de control (`z = 42..46`), pozo de 20 m (`z = 46..66`) y suelo 
 | Elemento | Posición | Detalle |
 |---|---|---|
 | Placa C | Techo, lado oeste, `z = 34` | Se presiona con la caja anclada en el techo |
-| Placa D | Suelo, junto a la pared este, `z = 42` | Una caja apoyada en ella la presiona por su peso |
+| Placa D | Dentro de un contenedor abierto junto a la pared este, `z = 42` | La caja que cae desde el techo queda dentro y la presiona por su peso; una caja que llega deslizándose por el suelo choca con el contenedor |
 | Cajas C y D | Suelo, `z = 34` y `z = 42` | Al llegar, la primera esclusa ya las habrá llevado a la pared oeste |
 
 1. Pulsa **F**: las dos cajas suben al techo y la caja C presiona la placa del techo.
@@ -158,7 +214,7 @@ Interruptores: pared este en `z = 13` (sobre la franja del suelo) y techo en `z 
 | Caja | Inicio, `(-3, 0, 3)` |
 | Pozo con fondo rojo | `z = 6..18` |
 | Interruptor | Techo, sobre el pozo, `z = 12` |
-| Placa | Suelo junto a la pared norte, lado oeste, `z = 31..33.4` |
+| Placa | Dentro de un contenedor abierto junto a la pared norte, lado oeste (`z = 32`): la caja tiene que llegar desde arriba |
 | Compuerta | `z = 34`: necesita el interruptor **y** la placa |
 
 **Truco nuevo:** Q y R giran la gravedad hacia la izquierda o la derecha de Kai. Si Kai mira hacia una pared lateral, la gravedad puede apuntar al **norte** o al **sur**.

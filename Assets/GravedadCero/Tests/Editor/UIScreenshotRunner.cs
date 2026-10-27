@@ -145,6 +145,15 @@ namespace GravedadCero.Tests
                 menu.CancelPending();
                 pause.SetPaused(false);
             }
+            if (full)
+            {
+                var recovery = GameObject.FindWithTag("Player").GetComponent<GravedadCero.Player.FallRecovery>();
+                recovery.Fail(GravedadCero.Player.FallRecovery.Cause.Fall);
+                yield return 1.4f;
+                CaptureAll($"level{code}_defeat");
+                hud.RetryFromCheckpoint();
+                yield return 1f;
+            }
             level.Complete();
             yield return 1.4f;
             CaptureAll($"level{code}_victory");
