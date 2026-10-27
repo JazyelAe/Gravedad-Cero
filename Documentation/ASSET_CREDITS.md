@@ -120,7 +120,7 @@ Los materiales, scripts, escenas y la configuración creados para Gravedad Cero 
 | Ubicación | `Assets/GravedadCero/Audio/Kenney_SciFiSounds/` |
 | Licencia incluida | `Assets/GravedadCero/Audio/Kenney_SciFiSounds/License.txt` (original del zip) |
 
-**Contenido incorporado:** 9 de los 70 sonidos, sin modificar. Los demás no se incluyeron porque no se usan.
+**Contenido incorporado:** 16 de los 70 sonidos, sin modificar (9 el 26-10-2026; 6 para los drones y el daño y 1 para las ventilas, del mismo zip ya descargado y verificado). Los demás no se incluyeron porque no se usan.
 
 | Sonido | Uso |
 |---|---|
@@ -131,6 +131,13 @@ Los materiales, scripts, escenas y la configuración creados para Gravedad Cero 
 | `laserSmall_003` | Interruptor |
 | `laserSmall_001` | Pulsar un botón de la interfaz |
 | `lowFrequency_explosion_000` | Reaparecer tras caer o tocar una zona de peligro |
+| `spaceEngineSmall_000` | Zumbido de los drones de seguridad (sonido 3D) |
+| `computerNoise_000` | Un dron detecta a Kai |
+| `explosionCrunch_000` | Un dron queda aturdido |
+| `impactMetal_002` | Kai recibe un golpe |
+| `forceField_002` | Registro de datos encontrado |
+| `laserRetro_002` | Una caja vuelve a su sitio |
+| `thrusterFire_000` | Ventilas de vapor (sonido 3D) |
 
 La asignación de cada pista y sonido está en `Assets/GravedadCero/Audio/Resources/AudioCatalog.asset`.
 
