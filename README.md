@@ -2,6 +2,20 @@
 
 Aventura 3D de puzzles y plataformas en tercera persona, ambientada en la estación orbital Helios-7. El jugador controla a Kai, un ingeniero de mantenimiento que usa un Módulo Gravitacional para caminar por paredes y techos, resolver puzzles y escapar de ORION, la IA de la estación.
 
+## Capturas
+
+**Escenario completo:** sección 1-1, Muelle de acoplamiento, vista desde arriba sin techos: la esclusa de entrada (abajo), el muelle y el hangar con la grúa (arriba).
+
+![Escenario completo de la sección 1-1](Documentation/Images/escenario_completo.png)
+
+**Seguimiento de la cámara en ejecución:** la cámara en tercera persona sigue a Kai por detrás y se acerca cuando una pared se interpone.
+
+![Cámara siguiendo a Kai en la sección 1-1](Documentation/Images/camara_seguimiento.png)
+
+Con la gravedad girada hacia la pared oeste, la cámara rota con el "arriba" de Kai y el horizonte lo acompaña sobre la pared.
+
+![Cámara siguiendo a Kai sobre una pared](Documentation/Images/camara_seguimiento_pared.png)
+
 
 
 ## Requisitos
@@ -100,6 +114,8 @@ Las pruebas de regresión recorren en Play Mode el menú, las cinco secciones (r
 El resultado queda en `Logs/RegressionReport.txt`. Las pruebas simulan al jugador por código, sin teclado ni mouse reales, y restauran el progreso guardado al terminar.
 
 **Constructor de niveles:** `Assets/GravedadCero/Editor/LevelBuilding/` (solo editor). `LevelKit` tiene las piezas (salas cerradas, paredes con puertas, andenes, pasarelas, mecanismos, drones, registros) `Level01Builder` y `Level02Builder` generan las secciones 1-1 y 1-2: menú **Gravedad Cero → Niveles → Reconstruir 1-1 / 1-2**, o `-executeMethod GravedadCero.EditorTools.Level0XBuilder.RunFromCommandLine`. Conserva Kai, cámara, HUD y pausa, y rehace la geometría y los puzles.
+
+**Capturas del README:** menú **Gravedad Cero → Capturas del README**, o `-executeMethod GravedadCero.Tests.ReadmeScreenshotRunner.RunFromCommandLine`, sin `-nographics`. Regenera las imágenes de `Documentation/Images/` a 1920×1080 desde la sección 1-1.
 
 **Capturas de interfaz:** menú **Gravedad Cero → Capturas de interfaz**, o `-executeMethod GravedadCero.Tests.UIScreenshotRunner.RunFromCommandLine`, sin `-nographics`. Captura el menú, el HUD, la pausa y la victoria a 1280×720, 1920×1080, 2560×1080 y 1024×768 en `Logs/UIScreens/`. El informe `report.txt` señala los textos que no caben en su recuadro o se salen de la pantalla.
 
